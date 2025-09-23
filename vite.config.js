@@ -4,6 +4,9 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0',
+    },
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.jsx'],
@@ -18,5 +21,11 @@ export default defineConfig({
     ],
     esbuild: {
         jsx: 'automatic',
+    },
+    resolve: {
+        alias: {
+            '@': '/resources/js',
+            ziggy: '/vendor/tightenco/ziggy/dist/vue.m',
+        },
     },
 });

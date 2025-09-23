@@ -14,15 +14,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Create admin user
         User::firstOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'admin@sigtoko.com'],
             [
-                'name' => 'Test User',
-                'password' => Hash::make('password'),
+                'name' => 'Admin SIG Toko',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
                 'email_verified_at' => now(),
             ]
         );
+
+        // Create regular test user
+        User::firstOrCreate(
+            ['email' => 'user@sigtoko.com'],
+            [
+                'name' => 'Test User',
+                'password' => Hash::make('user123'),
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create shops and products
+        $this->call([
+            ShopSeeder::class,
+        ]);
     }
 }

@@ -122,5 +122,12 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    // default longitude and latitude for map
+
+    'location' => [
+        'latitude' => env('VITA_DEFAULT_LATITUDE', -3.9942),
+        'longitude' => env('VITA_DEFAULT_LONGITUDE', 122.5423),
+        'zoom' => env('VITE_DEFAULT_ZOOM', 13),
+    ],
 
 ];
