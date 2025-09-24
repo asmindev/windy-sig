@@ -30,7 +30,7 @@ export default function UserSidebar({ children }) {
                 <SidebarHeader>
                     <div className="flex min-h-24 w-full items-center justify-center rounded-md bg-gray-100 p-1">
                         <h1 className="text-center text-4xl font-bold text-primary">
-                            Toko Windi
+                            Toko Oleh-oleh
                         </h1>
                     </div>
                 </SidebarHeader>
