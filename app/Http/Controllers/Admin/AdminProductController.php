@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Js;
 use Inertia\Inertia;
 
 class AdminProductController extends Controller
@@ -18,7 +20,7 @@ class AdminProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('shop');
+        $query = Product::with(['shop', 'category']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -29,6 +31,9 @@ class AdminProductController extends Controller
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhereHas('shop', function ($shopQuery) use ($search) {
                         $shopQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                        $categoryQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -36,6 +41,11 @@ class AdminProductController extends Controller
         // Filter by shop
         if ($request->has('shop_id') && $request->shop_id) {
             $query->where('shop_id', $request->shop_id);
+        }
+
+        // Filter by category
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
 
         // Filter by availability
@@ -80,11 +90,13 @@ class AdminProductController extends Controller
 
         $products = $query->paginate($perPage)->withQueryString();
         $shops = Shop::all();
+        $categories = Category::orderBy('name')->get();
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
             'shops' => $shops,
-            'filters' => $request->only(['search', 'shop_id', 'is_available', 'min_price', 'max_price', 'per_page', 'sort_by', 'sort_order']),
+            'categories' => $categories,
+            'filters' => $request->only(['search', 'shop_id', 'category_id', 'is_available', 'min_price', 'max_price', 'per_page', 'sort_by', 'sort_order']),
         ]);
     }
 
@@ -94,9 +106,11 @@ class AdminProductController extends Controller
     public function create()
     {
         $shops = Shop::all();
+        $categories = Category::orderBy('name')->get();
 
         return Inertia::render('Admin/Products/Create', [
             'shops' => $shops,
+            'categories' => $categories,
         ]);
     }
 
@@ -123,7 +137,7 @@ class AdminProductController extends Controller
      */
     public function show(Product $product)
     {
-        $product->load('shop');
+        $product->load(['shop', 'category']);
 
         return Inertia::render('Admin/Products/Show', [
             'product' => $product,
@@ -135,11 +149,16 @@ class AdminProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $product->load(['shop', 'category']);
         $shops = Shop::all();
+        $categories = Category::orderBy('name')->get();
+
+
 
         return Inertia::render('Admin/Products/Edit', [
             'product' => $product,
             'shops' => $shops,
+            'categories' => $categories,
         ]);
     }
 

@@ -8,8 +8,9 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AdminLayout from '@/layouts/AdminLayout';
+import { route } from '@/ziggy-config';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Edit, Package } from 'lucide-react';
+import { ArrowLeft, Edit, Package, Plus, Tag } from 'lucide-react';
 import ProductService from './services/ProductService';
 
 export default function ProductShow({ auth, product }) {
@@ -92,6 +93,73 @@ export default function ProductShow({ auth, product }) {
                                             {product.shop?.address && (
                                                 <p className="text-sm text-muted-foreground">
                                                     {product.shop.address}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="font-semibold text-foreground">
+                                                    Category
+                                                </h3>
+                                                <div className="flex items-center gap-2">
+                                                    {product.category && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            asChild
+                                                        >
+                                                            <Link
+                                                                href={route(
+                                                                    'admin.categories.edit',
+                                                                    product
+                                                                        .category
+                                                                        .id,
+                                                                )}
+                                                            >
+                                                                <Edit className="mr-1 h-3 w-3" />
+                                                                Edit
+                                                            </Link>
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        asChild
+                                                    >
+                                                        <Link
+                                                            href={route(
+                                                                'admin.categories.create',
+                                                            )}
+                                                        >
+                                                            <Plus className="mr-1 h-3 w-3" />
+                                                            Add Category
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {product.category ? (
+                                                <div className="mt-2">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-sm"
+                                                    >
+                                                        <Tag className="mr-1 h-3 w-3" />
+                                                        {product.category.name}
+                                                    </Badge>
+                                                    {product.category
+                                                        .description && (
+                                                        <p className="mt-1 text-sm text-muted-foreground">
+                                                            {
+                                                                product.category
+                                                                    .description
+                                                            }
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <p className="mt-2 text-muted-foreground">
+                                                    No category assigned
                                                 </p>
                                             )}
                                         </div>

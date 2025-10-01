@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ class ShopController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Shop::with('products');
+        $query = Shop::with('products.category');
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -25,6 +26,13 @@ class ShopController extends Controller
                         $productQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('description', 'like', "%{$search}%");
                     });
+            });
+        }
+
+        // Category filter
+        if ($request->has('category') && $request->category) {
+            $query->whereHas('products', function ($productQuery) use ($request) {
+                $productQuery->where('category_id', $request->category);
             });
         }
 
@@ -45,9 +53,15 @@ class ShopController extends Controller
 
         $shops = $query->paginate(12);
 
+        // Get all categories for filter dropdown
+        $categories = Category::withCount('products')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Shops/Index', [
             'shops' => $shops,
-            'filters' => $request->only(['search', 'latitude', 'longitude', 'radius', 'sort']),
+            'categories' => $categories,
+            'filters' => $request->only(['search', 'category', 'latitude', 'longitude', 'radius', 'sort']),
         ]);
     }
 

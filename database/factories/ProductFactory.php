@@ -34,6 +34,8 @@ class ProductFactory extends Factory
         $product = $this->faker->randomElement($products);
 
         return [
+            'shop_id' => \App\Models\Shop::factory(),
+            'category_id' => \App\Models\Category::inRandomOrder()->first()?->id,
             'name' => $product['name'],
             'type' => $product['type'],
             'price' => $this->faker->numberBetween($product['price_range'][0], $product['price_range'][1]),

@@ -8,6 +8,13 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import UserLayout from '@/layouts/UserLayout';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -15,15 +22,34 @@ import { Clock, MapPin, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export default function ShopsIndex({ shops, filters }) {
+export default function ShopsIndex({ shops, categories, filters }) {
     const [search, setSearch] = useState(filters.search || '');
+    const [selectedCategory, setSelectedCategory] = useState(
+        filters.category || '',
+    );
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const { url } = usePage();
     const { getCurrentPosition, hasPosition, position } = useGeolocation();
 
     const handleSearch = (e) => {
         e.preventDefault();
-        router.get(url, { search }, { preserveState: true, replace: true });
+        const params = { search };
+        if (selectedCategory) {
+            params.category = selectedCategory;
+        }
+        router.get(url, params, { preserveState: true, replace: true });
+    };
+
+    const handleCategoryChange = (categoryId) => {
+        setSelectedCategory(categoryId);
+        const params = {};
+        if (search) {
+            params.search = search;
+        }
+        if (categoryId) {
+            params.category = categoryId;
+        }
+        router.get(url, params, { preserveState: true, replace: true });
     };
 
     const handleGetNearestShops = async () => {
@@ -62,9 +88,12 @@ export default function ShopsIndex({ shops, filters }) {
                 sort: 'distance', // Sort by distance
             };
 
-            // Keep existing search if any
+            // Keep existing search and category if any
             if (search) {
                 params.search = search;
+            }
+            if (selectedCategory) {
+                params.category = selectedCategory;
             }
 
             router.get('/shops', params, {
@@ -114,45 +143,88 @@ export default function ShopsIndex({ shops, filters }) {
                             </div>
                             <Button type="submit">Cari</Button>
                         </form>
+                        <div className="flex items-center justify-between">
+                            {/* Category Filter */}
+                            <div className="flex items-center gap-2">
+                                <Select
+                                    value={selectedCategory}
+                                    onValueChange={handleCategoryChange}
+                                >
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Semua Kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem>Semua Kategori</SelectItem>
+                                        {categories.map((category) => (
+                                            <SelectItem
+                                                key={category.id}
+                                                value={category.id.toString()}
+                                            >
+                                                {category.name} (
+                                                {category.products_count})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="flex items-center gap-2"
-                                onClick={handleGetNearestShops}
-                                disabled={isGettingLocation}
-                            >
-                                <MapPin className="h-4 w-4" />
-                                {isGettingLocation
-                                    ? 'Mencari...'
-                                    : 'Toko Terdekat'}
-                            </Button>
-                            {filters.latitude && filters.longitude && (
-                                <>
-                                    <Badge variant="secondary">
-                                        Menampilkan toko dalam radius{' '}
-                                        {filters.radius || 10} km
-                                    </Badge>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                            router.get(
-                                                '/shops',
-                                                { search },
-                                                {
-                                                    preserveState: false,
-                                                    replace: true,
-                                                },
-                                            )
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex items-center gap-2"
+                                    onClick={handleGetNearestShops}
+                                    disabled={isGettingLocation}
+                                >
+                                    <MapPin className="h-4 w-4" />
+                                    {isGettingLocation
+                                        ? 'Mencari...'
+                                        : 'Toko Terdekat'}
+                                </Button>
+                                {filters.latitude && filters.longitude && (
+                                    <>
+                                        <Badge variant="secondary">
+                                            Menampilkan toko dalam radius{' '}
+                                            {filters.radius || 10} km
+                                        </Badge>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                router.get(
+                                                    '/shops',
+                                                    {
+                                                        search,
+                                                        ...(selectedCategory && {
+                                                            category:
+                                                                selectedCategory,
+                                                        }),
+                                                    },
+                                                    {
+                                                        preserveState: false,
+                                                        replace: true,
+                                                    },
+                                                )
+                                            }
+                                        >
+                                            Tampilkan Semua Toko
+                                        </Button>
+                                    </>
+                                )}
+                                {filters.category && (
+                                    <Badge variant="outline">
+                                        Kategori:{' '}
+                                        {
+                                            categories.find(
+                                                (cat) =>
+                                                    cat.id.toString() ===
+                                                    filters.category,
+                                            )?.name
                                         }
-                                    >
-                                        Tampilkan Semua Toko
-                                    </Button>
-                                </>
-                            )}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -207,6 +279,17 @@ export default function ShopsIndex({ shops, filters }) {
                                                                 className="text-xs"
                                                             >
                                                                 {product.name}
+                                                                {product.category && (
+                                                                    <span className="ml-1 text-muted-foreground">
+                                                                        (
+                                                                        {
+                                                                            product
+                                                                                .category
+                                                                                .name
+                                                                        }
+                                                                        )
+                                                                    </span>
+                                                                )}
                                                             </Badge>
                                                         ))}
                                                     {shop.products.length >
@@ -273,9 +356,47 @@ export default function ShopsIndex({ shops, filters }) {
                                 Tidak ada toko ditemukan
                             </h3>
                             <p className="mt-2 text-muted-foreground">
-                                Coba ubah kata kunci pencarian atau perluas area
-                                pencarian
+                                {filters.category ? (
+                                    <>
+                                        Tidak ada toko dengan kategori "
+                                        {
+                                            categories.find(
+                                                (cat) =>
+                                                    cat.id.toString() ===
+                                                    filters.category,
+                                            )?.name
+                                        }
+                                        "
+                                        {filters.search &&
+                                            ` dan pencarian "${filters.search}"`}
+                                    </>
+                                ) : filters.search ? (
+                                    `Tidak ada toko yang cocok dengan pencarian "${filters.search}"`
+                                ) : (
+                                    'Coba ubah kata kunci pencarian atau perluas area pencarian'
+                                )}
                             </p>
+                            {(filters.category || filters.search) && (
+                                <div className="mt-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setSearch('');
+                                            setSelectedCategory('');
+                                            router.get(
+                                                '/shops',
+                                                {},
+                                                {
+                                                    preserveState: false,
+                                                    replace: true,
+                                                },
+                                            );
+                                        }}
+                                    >
+                                        Tampilkan Semua Toko
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

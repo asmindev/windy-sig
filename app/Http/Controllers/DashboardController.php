@@ -12,20 +12,6 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     /**
-     * Display the user dashboard.
-     */
-    public function index(Request $request)
-    {
-        $stats = [
-            'shops_count' => Shop::count(),
-            'products_count' => Product::count(),
-            'searches_count' => Search::count(),
-        ];
-
-        return Inertia::render('Dashboard', compact('stats'));
-    }
-
-    /**
      * Display the admin dashboard.
      */
     public function admin(Request $request)

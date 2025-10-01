@@ -11,16 +11,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { LogIn, LogOut, MapPin, Store, UserPlus } from 'lucide-react';
+import { LogIn, LogOut, MapPin, Store } from 'lucide-react';
 
 export default function UserSidebar({ children }) {
     const { auth } = usePage().props;
     const navigation = [
         { name: 'Cari Toko', href: '/shops', icon: Store },
         { name: 'Peta', href: '/', icon: MapPin },
-        ...(!auth.user
-            ? []
-            : [{ name: 'Dashboard', href: '/dashboard', icon: Store }]),
     ];
 
     return (
@@ -58,21 +55,17 @@ export default function UserSidebar({ children }) {
                 <SidebarFooter>
                     <div className="flex flex-col gap-2 p-2">
                         {!auth.user ? (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button asChild variant="outline" size="sm">
+                            <div className="">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className={'w-full'}
+                                >
                                     <Link
                                         href="/login"
                                         className="flex items-center gap-2"
                                     >
                                         <LogIn className="h-4 w-4" /> Masuk
-                                    </Link>
-                                </Button>
-                                <Button asChild size="sm">
-                                    <Link
-                                        href="/register"
-                                        className="flex items-center gap-2"
-                                    >
-                                        <UserPlus className="h-4 w-4" /> Daftar
                                     </Link>
                                 </Button>
                             </div>

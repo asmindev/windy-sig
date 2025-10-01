@@ -24,6 +24,7 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'shop_id' => 'required|exists:shops,id',
+            'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
@@ -44,6 +45,7 @@ class UpdateProductRequest extends FormRequest
         return [
             'shop_id.required' => 'Toko harus dipilih.',
             'shop_id.exists' => 'Toko yang dipilih tidak valid.',
+            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
             'name.required' => 'Nama produk harus diisi.',
             'price.required' => 'Harga produk harus diisi.',
             'price.numeric' => 'Harga harus berupa angka.',

@@ -28,6 +28,7 @@ import {
     Package,
     Settings,
     Store,
+    Tag,
     User,
 } from 'lucide-react';
 
@@ -36,6 +37,11 @@ const navigationItems = [
         title: 'Dashboard',
         url: '/admin',
         icon: Home,
+    },
+    {
+        title: 'Categories',
+        url: '/admin/categories',
+        icon: Tag,
     },
     {
         title: 'Shop',
@@ -182,12 +188,6 @@ export default function AdminSidebar({ user }) {
                                     <Link href="/profile">
                                         <User className="mr-2 h-4 w-4" />
                                         Profile
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/dashboard">
-                                        <Home className="mr-2 h-4 w-4" />
-                                        User Dashboard
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />

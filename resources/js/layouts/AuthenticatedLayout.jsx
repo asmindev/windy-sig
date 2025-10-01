@@ -26,12 +26,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
     const navigation = [
         {
-            name: 'Dashboard',
-            href: '/dashboard',
-            icon: Home,
-            current: url === '/dashboard',
-        },
-        {
             name: 'Peta Toko',
             href: '/shops/map',
             icon: MapPin,
@@ -76,7 +70,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
                             {/* Logo */}
                             <div className="flex flex-shrink-0 items-center">
                                 <Link
-                                    href="/dashboard"
+                                    href="/"
                                     className="flex items-center space-x-2 text-xl font-bold text-foreground transition-colors hover:text-primary"
                                 >
                                     <Home className="h-6 w-6 text-primary" />

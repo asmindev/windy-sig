@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminShopController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
@@ -28,15 +29,15 @@ Route::prefix('api/routes')->name('api.routes.')->group(function () {
     Route::post('/batch-routes', [RouteController::class, 'getBatchRoutes'])->name('batch-routes');
 });
 
-// Authenticated routes
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-});
-
 // Admin routes
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     // Admin dashboard
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin.dashboard');
+
+    // Category management
+    Route::resource('admin/categories', CategoryController::class, [
+        'as' => 'admin',
+    ]);
 
     // Shop management
     Route::get('/admin/shops', [AdminShopController::class, 'index'])->name('admin.shops.index');

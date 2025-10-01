@@ -18,6 +18,7 @@ class Product extends Model
      */
     protected $fillable = [
         'shop_id',
+        'category_id',
         'name',
         'type',
         'price',
@@ -44,14 +45,13 @@ class Product extends Model
 
         Log::info('getImageAttribute called');
         if ($rawImage) {
-            Log::info('Image: ' . $rawImage);
+            Log::info('Image: '.$rawImage);
         } else {
             Log::info('No image available.');
         }
 
-        return $rawImage ? asset('storage/' . $rawImage) : null;
+        return $rawImage ? asset('storage/'.$rawImage) : null;
     }
-
 
     /**
      * Get the shop that owns the product.
@@ -59,5 +59,13 @@ class Product extends Model
     public function shop()
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    /**
+     * Get the category that owns the product.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

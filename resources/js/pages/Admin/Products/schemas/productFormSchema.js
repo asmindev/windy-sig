@@ -6,6 +6,7 @@ import * as z from 'zod';
  */
 export const productFormSchema = z.object({
     shop_id: z.string().min(1, 'Toko harus dipilih'),
+    category_id: z.string().optional(),
     name: z.string().min(1, 'Nama produk harus diisi'),
     type: z.string().optional(),
     price: z
@@ -32,6 +33,7 @@ export const productFormSchema = z.object({
  */
 export const getCreateDefaultValues = () => ({
     shop_id: '',
+    category_id: '',
     name: '',
     type: '',
     price: '',
@@ -47,6 +49,7 @@ export const getCreateDefaultValues = () => ({
  */
 export const getEditDefaultValues = (product) => ({
     shop_id: product.shop_id?.toString() || '',
+    category_id: product.category_id?.toString() || '',
     name: product.name || '',
     type: product.type || '',
     price: product.price?.toString() || '',
