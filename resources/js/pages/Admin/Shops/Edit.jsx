@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/AdminLayout';
+import { route } from '@/ziggy-config';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, MapPin, Save, Store } from 'lucide-react';
@@ -100,7 +101,7 @@ export default function ShopEdit({ auth, shop }) {
             return;
         }
 
-        router.put(route('shops.update', shop.id), values, {
+        router.put(route('admin.shops.update', shop.id), values, {
             onSuccess: () => {
                 toast.success('Toko berhasil diperbarui', {
                     description:

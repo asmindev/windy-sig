@@ -12,13 +12,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/AdminLayout';
 import { route } from '@/ziggy-config';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { CategoryDataTable } from './components/CategoryDataTable';
 import { getCategoryColumns } from './components/categoryColumns';
 
 export default function CategoriesIndex({ auth, categories, filters = {} }) {
+    const { flash } = usePage().props;
+    if (flash?.message && flash?.status) {
+        if (flash.status === 'success') {
+            toast.success(flash.message);
+        } else if (flash.status === 'error') {
+            toast.error(flash.message);
+        }
+    }
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     const handleDelete = (category) => {

@@ -55,16 +55,6 @@ export default function ProductShow({ auth, product }) {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Badge
-                                        variant={ProductService.getAvailabilityBadgeVariant(
-                                            product.is_available,
-                                        )}
-                                        className="text-sm"
-                                    >
-                                        {ProductService.getAvailabilityText(
-                                            product.is_available,
-                                        )}
-                                    </Badge>
                                     <Button asChild>
                                         <Link
                                             href={ProductService.getRouteUrl(
@@ -174,20 +164,6 @@ export default function ProductShow({ auth, product }) {
                                                 )}
                                             </p>
                                         </div>
-
-                                        <div>
-                                            <h3 className="font-semibold text-foreground">
-                                                Stock Quantity
-                                            </h3>
-                                            <Badge
-                                                variant={ProductService.getStockBadgeVariant(
-                                                    product.stock_quantity,
-                                                )}
-                                                className="text-sm"
-                                            >
-                                                {product.stock_quantity} units
-                                            </Badge>
-                                        </div>
                                     </div>
 
                                     {/* Description and Additional Info */}
@@ -210,7 +186,7 @@ export default function ProductShow({ auth, product }) {
                                                 </h3>
                                                 <div className="mt-2">
                                                     <img
-                                                        src={`/storage/${product.image}`}
+                                                        src={product.image}
                                                         alt={product.name}
                                                         className="h-auto max-w-full rounded-lg border"
                                                         style={{

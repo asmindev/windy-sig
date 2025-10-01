@@ -7,6 +7,7 @@ use App\Http\Requests\StoreShopRequest;
 use App\Http\Requests\UpdateShopRequest;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class AdminShopController extends Controller
@@ -69,7 +70,7 @@ class AdminShopController extends Controller
         $shop = Shop::create($request->validated());
 
         return redirect()->route('admin.shops.index')
-            ->with('success', 'Toko berhasil ditambahkan.');
+            ->with('message', 'Toko berhasil dibuat.')->with('status', 'success');
     }
 
     /**
@@ -77,7 +78,7 @@ class AdminShopController extends Controller
      */
     public function show(Shop $shop)
     {
-        $shop->load('products');
+        $shop->load(['products.category']);
 
         return Inertia::render('Admin/Shops/Show', [
             'shop' => $shop,
@@ -102,7 +103,7 @@ class AdminShopController extends Controller
         $shop->update($request->validated());
 
         return redirect()->route('admin.shops.index')
-            ->with('success', 'Toko berhasil diperbarui.');
+            ->with('message', 'Toko berhasil diperbarui.')->with('status', 'success');
     }
 
     /**
@@ -110,16 +111,17 @@ class AdminShopController extends Controller
      */
     public function destroy(Shop $shop)
     {
-        // Check if shop has products
-        if ($shop->products()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Toko tidak dapat dihapus karena masih memiliki produk.');
+        try {
+            Log::info('Deleting shop', ['shop_id' => $shop->id]);
+            // Check if shop has products
+
+            $shop->delete();
+            Log::info('Shop deleted', ['shop_id' => $shop->id]);
+
+            return back()->with('message', 'Toko berhasil dihapus.')->with('status', 'success');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus toko: ' . $e->getMessage());
         }
-
-        $shop->delete();
-
-        return redirect()->route('admin.shops.index')
-            ->with('success', 'Toko berhasil dihapus.');
     }
 
     /**
@@ -150,7 +152,7 @@ class AdminShopController extends Controller
         if ($deletedCount > 0) {
             $message = "Berhasil menghapus {$deletedCount} toko.";
             if (! empty($errors)) {
-                $message .= ' '.implode(' ', $errors);
+                $message .= ' ' . implode(' ', $errors);
             }
 
             return redirect()->back()->with('success', $message);

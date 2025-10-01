@@ -129,8 +129,10 @@ export class ShopService {
      */
     static deleteShop(shopId) {
         router.delete(route('admin.shops.destroy', shopId), {
-            onSuccess: () => {
-                // Optionally show success message
+            preserveState: true,
+            onError: (errors) => {
+                console.error('Delete failed:', errors);
+                // The flash messages will be handled by the component
             },
         });
     }

@@ -4,6 +4,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Toaster } from 'sonner';
 
 export default function AdminLayout({ user, header, children }) {
     return (
@@ -16,6 +17,7 @@ export default function AdminLayout({ user, header, children }) {
                 </header>
                 <main className="p-2">{children}</main>
             </SidebarInset>
+            <Toaster position="top-right" />
         </SidebarProvider>
     );
 }

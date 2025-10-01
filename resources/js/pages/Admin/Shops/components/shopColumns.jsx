@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -75,19 +74,6 @@ export const getShopColumns = (onDelete) => [
                 {!row.original.phone && !row.original.email && (
                     <span className="text-sm text-muted-foreground">-</span>
                 )}
-            </div>
-        ),
-    },
-    {
-        accessorKey: 'is_active',
-        header: 'Status',
-        cell: ({ row }) => (
-            <div className="flex items-center space-x-1">
-                <Badge
-                    variant={row.original.is_active ? 'default' : 'secondary'}
-                >
-                    {row.original.is_active ? 'Aktif' : 'Nonaktif'}
-                </Badge>
             </div>
         ),
     },

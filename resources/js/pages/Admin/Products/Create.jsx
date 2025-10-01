@@ -216,30 +216,6 @@ export default function ProductCreate({ auth, shops, categories }) {
                                                 )}
                                             />
 
-                                            {/* Jenis Produk */}
-                                            <FormField
-                                                control={form.control}
-                                                name="type"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>
-                                                            Jenis Produk
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                className="w-full"
-                                                                placeholder="Contoh: Makanan, Kerajinan"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormDescription className="text-sm text-muted-foreground">
-                                                            Opsional
-                                                        </FormDescription>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-
                                             {/* Harga */}
                                             <FormField
                                                 control={form.control}

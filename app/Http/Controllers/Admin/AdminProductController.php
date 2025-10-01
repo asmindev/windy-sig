@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
 use Inertia\Inertia;
@@ -103,14 +104,21 @@ class AdminProductController extends Controller
     /**
      * Show the form for creating a new product.
      */
-    public function create()
+    public function create(Request $request)
     {
         $shops = Shop::all();
         $categories = Category::orderBy('name')->get();
 
+        // Pre-select shop if provided via query parameter
+        $selectedShop = null;
+        if ($request->has('shop')) {
+            $selectedShop = Shop::find($request->shop);
+        }
+
         return Inertia::render('Admin/Products/Create', [
             'shops' => $shops,
             'categories' => $categories,
+            'selectedShop' => $selectedShop,
         ]);
     }
 
@@ -129,7 +137,8 @@ class AdminProductController extends Controller
         Product::create($validated);
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil ditambahkan.');
+            ->with('message', 'Produk berhasil ditambahkan.')
+            ->with('status', 'success');
     }
 
     /**
@@ -181,7 +190,8 @@ class AdminProductController extends Controller
         $product->update($validated);
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil diperbarui.');
+            ->with('message', 'Produk berhasil diperbarui.')
+            ->with('status', 'success');
     }
 
     /**
@@ -189,6 +199,7 @@ class AdminProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        Log::info('Deleting product', ['product_id' => $product->id]);
         // Delete image if exists
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -197,7 +208,7 @@ class AdminProductController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil dihapus.');
+            ->with('message', 'Produk berhasil dihapus.')->with('status', 'success');
     }
 
     /**
@@ -224,7 +235,9 @@ class AdminProductController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', "Berhasil menghapus {$deletedCount} produk.");
+        return redirect()->back()
+            ->with('message', "Berhasil menghapus {$deletedCount} produk.")
+            ->with('status', 'success');
     }
 
     /**
@@ -243,6 +256,8 @@ class AdminProductController extends Controller
 
         $status = $request->is_available ? 'tersedia' : 'tidak tersedia';
 
-        return redirect()->back()->with('success', "Berhasil mengubah status {$updatedCount} produk menjadi {$status}.");
+        return redirect()->back()
+            ->with('message', "Berhasil mengubah status {$updatedCount} produk menjadi {$status}.")
+            ->with('status', 'success');
     }
 }

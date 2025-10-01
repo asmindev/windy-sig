@@ -11,16 +11,26 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/AdminLayout';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import ProductDataTable from './components/ProductDataTable';
 import { getProductColumns } from './components/productColumns';
 import ProductService from './services/ProductService';
 
 export default function ProductsIndex({ auth, products, filters = {} }) {
+    const props = usePage().props;
+    const { flash } = props;
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [deleteProduct, setDeleteProduct] = useState(null);
+    if (flash?.message && flash?.status) {
+        if (flash.status === 'success') {
+            toast.success(flash.message);
+        } else if (flash.status === 'error') {
+            toast.error(flash.message);
+        }
+    }
 
     const handleSearch = (searchValue) => {
         setSearchTerm(searchValue);
