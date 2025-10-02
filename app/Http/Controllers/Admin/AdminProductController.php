@@ -133,7 +133,7 @@ class AdminProductController extends Controller
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
-
+        // Handle image upload, if provided
         Product::create($validated);
 
         return redirect()->route('admin.products.index')

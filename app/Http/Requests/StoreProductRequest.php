@@ -29,7 +29,7 @@ class StoreProductRequest extends FormRequest
             'type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:10240', // 10MB max
+            'image' => 'nullable|image|max:10240', // 10MB max (sesuai PHP limits)
             'is_available' => 'boolean',
             'stock_quantity' => 'nullable|integer|min:0',
         ];

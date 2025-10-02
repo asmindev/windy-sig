@@ -347,18 +347,41 @@ export default function ProductCreate({ auth, shops, categories }) {
                                                         type="file"
                                                         className="w-full"
                                                         accept="image/*"
-                                                        onChange={(e) =>
-                                                            onChange(
+                                                        onChange={(e) => {
+                                                            const file =
                                                                 e.target
-                                                                    .files[0],
-                                                            )
-                                                        }
+                                                                    .files[0];
+                                                            if (file) {
+                                                                // Check file size (10MB = 10 * 1024 * 1024 bytes)
+                                                                if (
+                                                                    file.size >
+                                                                    10 *
+                                                                        1024 *
+                                                                        1024
+                                                                ) {
+                                                                    form.setError(
+                                                                        'image',
+                                                                        {
+                                                                            message:
+                                                                                'Ukuran file terlalu besar. Maksimal 10MB.',
+                                                                        },
+                                                                    );
+                                                                    e.target.value =
+                                                                        ''; // Clear the input
+                                                                    return;
+                                                                }
+                                                                form.clearErrors(
+                                                                    'image',
+                                                                );
+                                                            }
+                                                            onChange(file);
+                                                        }}
                                                         {...field}
                                                     />
                                                 </FormControl>
                                                 <FormDescription className="text-sm text-muted-foreground">
                                                     Format: JPG, PNG, GIF (Max:
-                                                    2MB). Gambar berkualitas
+                                                    10MB). Gambar berkualitas
                                                     baik akan menarik lebih
                                                     banyak pembeli.
                                                 </FormDescription>
