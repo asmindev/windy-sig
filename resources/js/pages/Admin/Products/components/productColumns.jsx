@@ -60,11 +60,13 @@ export const getProductColumns = (onDelete) => [
         ),
     },
     {
-        accessorKey: 'type',
+        accessorKey: 'category',
         header: 'Kategori',
         cell: ({ row }) => (
             <div className="flex items-center space-x-1">
-                <Badge variant="outline">{row.original.type || 'Umum'}</Badge>
+                <Badge variant="outline">
+                    {row.original.category?.name || 'Umum'}
+                </Badge>
             </div>
         ),
     },

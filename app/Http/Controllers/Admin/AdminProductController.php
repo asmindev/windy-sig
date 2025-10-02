@@ -88,8 +88,8 @@ class AdminProductController extends Controller
         if (! in_array((int) $perPage, $allowedPerPage)) {
             $perPage = 15;
         }
-
-        $products = $query->paginate($perPage)->withQueryString();
+        // $products with category
+        $products = $query->with('category')->paginate($perPage)->withQueryString();
         $shops = Shop::all();
         $categories = Category::orderBy('name')->get();
 

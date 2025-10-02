@@ -29,7 +29,7 @@ class StoreProductRequest extends FormRequest
             'type' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:2048', // 2MB max
+            'image' => 'nullable|image|max:10240', // 10MB max
             'is_available' => 'boolean',
             'stock_quantity' => 'nullable|integer|min:0',
         ];
@@ -51,7 +51,7 @@ class StoreProductRequest extends FormRequest
             'price.numeric' => 'Harga harus berupa angka.',
             'price.min' => 'Harga tidak boleh negatif.',
             'image.image' => 'File harus berupa gambar.',
-            'image.max' => 'Ukuran gambar maksimal 2MB.',
+            'image.max' => 'Ukuran gambar maksimal 10MB.',
         ];
     }
 }
