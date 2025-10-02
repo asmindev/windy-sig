@@ -60,7 +60,32 @@ export default function ProductEdit({ auth, product, shops, categories }) {
         });
     };
 
-    const formatPrice = (price) => ProductService.formatPrice(price);
+    const formatPrice = (product) => {
+        const min_price = product.min_price;
+        const max_price = product.max_price;
+
+        if (min_price == null && max_price == null) {
+            return 'Tidak disebutkan';
+        }
+
+        const format_min_price = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(min_price);
+        let format_max_price = '';
+
+        if (max_price) {
+            format_max_price = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+            }).format(max_price);
+        }
+        return max_price
+            ? `${format_min_price} - ${format_max_price}`
+            : format_min_price;
+    };
 
     return (
         <AdminLayout
@@ -225,27 +250,58 @@ export default function ProductEdit({ auth, product, shops, categories }) {
                                                 )}
                                             />
 
-                                            {/* Harga */}
+                                            {/* Harga Minimum */}
                                             <FormField
                                                 control={form.control}
-                                                name="price"
+                                                name="min_price"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>
-                                                            Harga (IDR)
+                                                            Harga Minimum (IDR)
+                                                            *
                                                         </FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 type="number"
                                                                 className="w-full"
-                                                                placeholder="Masukkan harga produk"
+                                                                placeholder="Masukkan harga minimum"
                                                                 min="0"
                                                                 step="1000"
                                                                 {...field}
                                                             />
                                                         </FormControl>
                                                         <FormDescription className="text-sm text-muted-foreground">
-                                                            Dalam Rupiah
+                                                            Harga terendah untuk
+                                                            produk ini
+                                                        </FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {/* Harga Maksimum */}
+                                            <FormField
+                                                control={form.control}
+                                                name="max_price"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Harga Maksimum (IDR)
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="number"
+                                                                className="w-full"
+                                                                placeholder="Masukkan harga maksimum (opsional)"
+                                                                min="0"
+                                                                step="1000"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription className="text-sm text-muted-foreground">
+                                                            Harga tertinggi
+                                                            untuk produk ini
+                                                            (opsional)
                                                         </FormDescription>
                                                         <FormMessage />
                                                     </FormItem>
@@ -296,7 +352,7 @@ export default function ProductEdit({ auth, product, shops, categories }) {
                                             </Badge>
                                         )}
                                         <Badge className="bg-green-100 text-green-800">
-                                            {formatPrice(product.price)}
+                                            {formatPrice(product)}
                                         </Badge>
                                     </div>
                                 </CardTitle>
@@ -322,7 +378,7 @@ export default function ProductEdit({ auth, product, shops, categories }) {
                                     </div>
                                     <div>
                                         <strong>Harga:</strong>{' '}
-                                        {formatPrice(product.price)}
+                                        {formatPrice(product)}
                                     </div>
                                     {product.description && (
                                         <div>

@@ -46,7 +46,7 @@ class ShopController extends Controller
 
             // If sorting by distance, the withinRadius scope already handles ordering
             // Otherwise, we can add other sorting options here
-        } else if ($request->sort !== 'distance') {
+        } elseif ($request->sort !== 'distance') {
             // Default sorting when no location is provided
             $query->orderBy('name');
         }
@@ -70,7 +70,7 @@ class ShopController extends Controller
      */
     public function show(Shop $shop)
     {
-        $shop->load('products');
+        $shop->load('products.category');
 
         return Inertia::render('Shops/Show', [
             'shop' => $shop,

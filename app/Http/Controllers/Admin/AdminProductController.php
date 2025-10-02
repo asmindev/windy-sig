@@ -11,7 +11,6 @@ use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Js;
 use Inertia\Inertia;
 
 class AdminProductController extends Controller
@@ -56,10 +55,13 @@ class AdminProductController extends Controller
 
         // Price range filter
         if ($request->has('min_price') && $request->min_price) {
-            $query->where('price', '>=', $request->min_price);
+            $query->where('min_price', '>=', $request->min_price);
         }
         if ($request->has('max_price') && $request->max_price) {
-            $query->where('price', '<=', $request->max_price);
+            $query->where(function ($q) use ($request) {
+                $q->where('max_price', '<=', $request->max_price)
+                    ->orWhereNull('max_price');
+            });
         }
 
         // Sorting functionality
@@ -76,7 +78,7 @@ class AdminProductController extends Controller
                 ->select('products.*');
         } else {
             // Validate column exists to prevent SQL injection
-            $allowedColumns = ['name', 'type', 'price', 'stock_quantity', 'is_available', 'created_at'];
+            $allowedColumns = ['name', 'type', 'min_price', 'stock_quantity', 'is_available', 'created_at'];
             if (in_array($sortBy, $allowedColumns)) {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -129,6 +131,11 @@ class AdminProductController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle max_price logic - if empty, set to null
+        if (empty($validated['max_price'])) {
+            $validated['max_price'] = null;
+        }
+
         // Handle image upload
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
@@ -162,8 +169,6 @@ class AdminProductController extends Controller
         $shops = Shop::all();
         $categories = Category::orderBy('name')->get();
 
-
-
         return Inertia::render('Admin/Products/Edit', [
             'product' => $product,
             'shops' => $shops,
@@ -177,6 +182,11 @@ class AdminProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $validated = $request->validated();
+
+        // Handle max_price logic - if empty, set to null to remove from database
+        if (empty($validated['max_price'])) {
+            $validated['max_price'] = null;
+        }
 
         // Handle image upload
         if ($request->hasFile('image')) {

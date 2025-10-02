@@ -42,10 +42,13 @@ class ProductController extends Controller
 
         // Price range filter
         if ($request->has('min_price') && $request->min_price) {
-            $query->where('price', '>=', $request->min_price);
+            $query->where('min_price', '>=', $request->min_price);
         }
         if ($request->has('max_price') && $request->max_price) {
-            $query->where('price', '<=', $request->max_price);
+            $query->where(function ($q) use ($request) {
+                $q->where('max_price', '<=', $request->max_price)
+                    ->orWhereNull('max_price');
+            });
         }
 
         // Location-based search (products from nearby shops)
@@ -73,7 +76,7 @@ class ProductController extends Controller
                 ->select('products.*');
         } else {
             // Validate column exists
-            $allowedColumns = ['name', 'type', 'price', 'created_at'];
+            $allowedColumns = ['name', 'type', 'min_price', 'created_at'];
             if (in_array($sortBy, $allowedColumns)) {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -112,13 +115,12 @@ class ProductController extends Controller
             abort(404);
         }
 
-        $product->load('shop');
-
+        // load category relation
+        $product->load('category', 'shop');
         // Get related products from the same shop
         $relatedProducts = Product::where('shop_id', $product->shop_id)
             ->where('id', '!=', $product->id)
             ->where('is_available', true)
-            ->limit(4)
             ->get();
 
         return Inertia::render('Products/Show', [
@@ -143,7 +145,7 @@ class ProductController extends Controller
                 $q->where('name', 'like', "%{$query}%")
                     ->orWhere('type', 'like', "%{$query}%");
             })
-            ->select(['id', 'name', 'type', 'price', 'image'])
+            ->select(['id', 'name', 'type', 'min_price', 'max_price', 'image'])
             ->limit(5)
             ->get();
 

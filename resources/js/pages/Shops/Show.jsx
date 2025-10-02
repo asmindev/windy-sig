@@ -9,17 +9,37 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserLayout from '@/layouts/UserLayout';
 import { Link } from '@inertiajs/react';
 import { ArrowLeft, Clock, MapPin, Package, Phone } from 'lucide-react';
 
 export default function ShopShow({ shop }) {
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat('id-ID', {
+    const formatPrice = (product) => {
+        const min_price = product.min_price;
+        const max_price = product.max_price;
+
+        if (min_price == null && max_price == null) {
+            return 'Tidak disebutkan';
+        }
+
+        const format_min_price = new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0,
-        }).format(price);
+        }).format(min_price);
+        let format_max_price = '';
+
+        if (max_price) {
+            format_max_price = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+            }).format(max_price);
+        }
+        return max_price
+            ? `${format_min_price} - ${format_max_price}`
+            : format_min_price;
     };
 
     const handleGetRoute = () => {
@@ -134,73 +154,136 @@ export default function ShopShow({ shop }) {
                         </Card>
                     </div>
 
-                    {/* Products */}
-                    <div>
-                        <h2 className="mb-6 text-xl font-bold">
-                            Produk yang Tersedia
-                        </h2>
+                    {/* Tabs for Products and Map */}
+                    <Tabs defaultValue="products" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger
+                                value="products"
+                                className="flex items-center gap-2"
+                            >
+                                <Package className="h-4 w-4" />
+                                Produk
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="map"
+                                className="flex items-center gap-2"
+                            >
+                                <MapPin className="h-4 w-4" />
+                                Lokasi
+                            </TabsTrigger>
+                        </TabsList>
 
-                        {shop.products.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {shop.products.map((product) => (
-                                    <Card key={product.id}>
-                                        <CardHeader className="pb-3">
-                                            <div className="flex items-start justify-between">
-                                                <CardTitle className="text-lg">
-                                                    {product.name}
-                                                </CardTitle>
-                                                <Badge variant="secondary">
-                                                    {product.type}
-                                                </Badge>
-                                            </div>
-                                            <CardDescription className="text-lg font-semibold text-green-600">
-                                                {formatPrice(product.price)}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        {product.description && (
-                                            <CardContent className="pt-0">
-                                                <p className="text-sm text-gray-600">
-                                                    {product.description}
-                                                </p>
-                                            </CardContent>
-                                        )}
+                        {/* Products Tab */}
+                        <TabsContent value="products" className="mt-6">
+                            <div>
+                                <h2 className="mb-6 text-xl font-bold">
+                                    Produk yang Tersedia
+                                </h2>
+
+                                {shop.products.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        {shop.products.map((product) => (
+                                            <Card
+                                                key={product.id}
+                                                className="overflow-hidden p-0"
+                                            >
+                                                <div className="flex h-full">
+                                                    <div className="h-full max-h-40 w-40 min-w-40 overflow-hidden">
+                                                        <img
+                                                            src={
+                                                                product.image ||
+                                                                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png'
+                                                            }
+                                                            alt={product.name}
+                                                            className="h-full w-full object-cover transition-transform hover:scale-105"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-1 flex-col justify-between p-2">
+                                                        <CardHeader className="w-full p-0">
+                                                            <div className="items-start justify-between">
+                                                                <CardTitle className="">
+                                                                    {
+                                                                        product.name
+                                                                    }
+                                                                </CardTitle>
+                                                            </div>
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
+                                                                {product
+                                                                    .category
+                                                                    ?.name ||
+                                                                    'uncategorized'}
+                                                            </Badge>
+                                                            <CardDescription className="text-sm text-gray-600">
+                                                                {
+                                                                    product.description
+                                                                }
+                                                            </CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="p-0">
+                                                            <p className="text-sm font-medium text-green-600">
+                                                                {formatPrice(
+                                                                    product,
+                                                                )}
+                                                            </p>
+                                                        </CardContent>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Card>
+                                        <CardContent className="py-8 text-center">
+                                            <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                                            <h3 className="text-lg font-medium text-gray-900">
+                                                Belum ada produk
+                                            </h3>
+                                            <p className="text-gray-600">
+                                                Produk akan segera ditambahkan
+                                            </p>
+                                        </CardContent>
                                     </Card>
-                                ))}
+                                )}
                             </div>
-                        ) : (
-                            <Card>
-                                <CardContent className="py-8 text-center">
-                                    <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                                    <h3 className="text-lg font-medium text-gray-900">
-                                        Belum ada produk
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Produk akan segera ditambahkan
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
+                        </TabsContent>
 
-                    {/* Map */}
-                    <div className="mt-8">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Lokasi Toko</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <MapWrapper
-                                    shops={[shop]}
-                                    center={[shop.latitude, shop.longitude]}
-                                    zoom={16}
-                                    className="h-64 w-full rounded-lg"
-                                />
-                                <div className="mt-3 text-sm text-gray-600">
-                                    Koordinat: {shop.latitude}, {shop.longitude}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                        {/* Map Tab */}
+                        <TabsContent value="map" className="mt-6">
+                            <div>
+                                <h2 className="mb-6 text-xl font-bold">
+                                    Lokasi Toko
+                                </h2>
+
+                                <Card className={'py-0'}>
+                                    <CardContent className="p-0">
+                                        <MapWrapper
+                                            shops={[shop]}
+                                            center={[
+                                                shop.latitude,
+                                                shop.longitude,
+                                            ]}
+                                            zoom={16}
+                                            className="h-96 w-full rounded-lg"
+                                        />
+                                        <div className="p-4">
+                                            <div className="text-sm text-gray-600">
+                                                <p className="mb-1 font-medium">
+                                                    Koordinat:
+                                                </p>
+                                                <p>
+                                                    {shop.latitude},{' '}
+                                                    {shop.longitude}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
         </UserLayout>

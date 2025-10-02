@@ -216,27 +216,58 @@ export default function ProductCreate({ auth, shops, categories }) {
                                                 )}
                                             />
 
-                                            {/* Harga */}
+                                            {/* Harga Minimum */}
                                             <FormField
                                                 control={form.control}
-                                                name="price"
+                                                name="min_price"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>
-                                                            Harga (IDR)
+                                                            Harga Minimum (IDR)
+                                                            *
                                                         </FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 type="number"
                                                                 className="w-full"
-                                                                placeholder="Masukkan harga produk"
+                                                                placeholder="Masukkan harga minimum"
                                                                 min="0"
                                                                 step="1000"
                                                                 {...field}
                                                             />
                                                         </FormControl>
                                                         <FormDescription className="text-sm text-muted-foreground">
-                                                            Dalam Rupiah
+                                                            Harga terendah untuk
+                                                            produk ini
+                                                        </FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {/* Harga Maksimum */}
+                                            <FormField
+                                                control={form.control}
+                                                name="max_price"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Harga Maksimum (IDR)
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="number"
+                                                                className="w-full"
+                                                                placeholder="Masukkan harga maksimum (opsional)"
+                                                                min="0"
+                                                                step="1000"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription className="text-sm text-muted-foreground">
+                                                            Harga tertinggi
+                                                            untuk produk ini
+                                                            (opsional)
                                                         </FormDescription>
                                                         <FormMessage />
                                                     </FormItem>
@@ -301,10 +332,11 @@ export default function ProductCreate({ auth, shops, categories }) {
                                         </p>
                                     </div>
                                     <div>
-                                        <strong>Harga:</strong>
+                                        <strong>Range Harga:</strong>
                                         <p className="text-muted-foreground">
-                                            Pastikan harga sesuai dengan
-                                            kualitas dan pasaran
+                                            Isi harga minimum (wajib) dan harga
+                                            maksimum (opsional) untuk produk
+                                            dengan variasi harga
                                         </p>
                                     </div>
                                     <div>

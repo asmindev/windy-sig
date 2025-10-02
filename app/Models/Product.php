@@ -21,7 +21,8 @@ class Product extends Model
         'category_id',
         'name',
         'type',
-        'price',
+        'min_price',
+        'max_price',
         'image',
         'description',
     ];
@@ -34,7 +35,8 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2',
+            'min_price' => 'decimal:2',
+            'max_price' => 'decimal:2',
         ];
     }
 
@@ -51,6 +53,22 @@ class Product extends Model
         }
 
         return $rawImage ? asset('storage/'.$rawImage) : null;
+    }
+
+    /**
+     * Get formatted price range.
+     */
+    public function getPriceRangeAttribute(): string
+    {
+        $minPrice = number_format((float) $this->min_price, 0, ',', '.');
+
+        if ($this->max_price && $this->max_price != $this->min_price) {
+            $maxPrice = number_format((float) $this->max_price, 0, ',', '.');
+
+            return "Rp {$minPrice} - Rp {$maxPrice}";
+        }
+
+        return "Rp {$minPrice}";
     }
 
     /**

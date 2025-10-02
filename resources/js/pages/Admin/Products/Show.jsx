@@ -14,6 +14,32 @@ import { ArrowLeft, Edit, Package, Plus, Tag } from 'lucide-react';
 import ProductService from './services/ProductService';
 
 export default function ProductShow({ auth, product }) {
+    const formatPrice = (product) => {
+        const min_price = product.min_price;
+        const max_price = product.max_price;
+
+        if (min_price == null && max_price == null) {
+            return 'Tidak disebutkan';
+        }
+
+        const format_min_price = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(min_price);
+        let format_max_price = '';
+
+        if (max_price) {
+            format_max_price = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+            }).format(max_price);
+        }
+        return max_price
+            ? `${format_min_price} - ${format_max_price}`
+            : format_min_price;
+    };
     return (
         <AdminLayout
             user={auth.user}
@@ -156,12 +182,10 @@ export default function ProductShow({ auth, product }) {
 
                                         <div>
                                             <h3 className="font-semibold text-foreground">
-                                                Price
+                                                Range Harga
                                             </h3>
                                             <p className="text-2xl font-bold text-green-600">
-                                                {ProductService.formatPrice(
-                                                    product.price,
-                                                )}
+                                                {formatPrice(product)}
                                             </p>
                                         </div>
                                     </div>

@@ -10,6 +10,33 @@ import { route } from '@/ziggy-config';
 import { Link } from '@inertiajs/react';
 import { ImageIcon, MoreHorizontal, Store } from 'lucide-react';
 
+const formatPrice = (product) => {
+    const min_price = product.min_price;
+    const max_price = product.max_price;
+
+    if (min_price == null && max_price == null) {
+        return 'Tidak disebutkan';
+    }
+
+    const format_min_price = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(min_price);
+    let format_max_price = '';
+
+    if (max_price) {
+        format_max_price = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(max_price);
+    }
+    return max_price
+        ? `${format_min_price} - ${format_max_price}`
+        : format_min_price;
+};
+
 /**
  * Column definitions for products data table
  * @param {Function} onDelete - Delete handler function
@@ -75,13 +102,7 @@ export const getProductColumns = (onDelete) => [
         header: 'Harga',
         cell: ({ row }) => (
             <div className="flex items-center space-x-1">
-                <span className="font-medium">
-                    {new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 0,
-                    }).format(row.original.price)}
-                </span>
+                <span className="font-medium">{formatPrice(row.original)}</span>
             </div>
         ),
     },

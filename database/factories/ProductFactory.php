@@ -32,13 +32,16 @@ class ProductFactory extends Factory
         ];
 
         $product = $this->faker->randomElement($products);
+        $minPrice = $product['price_range'][0];
+        $maxPrice = $product['price_range'][1];
 
         return [
             'shop_id' => \App\Models\Shop::factory(),
             'category_id' => \App\Models\Category::inRandomOrder()->first()?->id,
             'name' => $product['name'],
             'type' => $product['type'],
-            'price' => $this->faker->numberBetween($product['price_range'][0], $product['price_range'][1]),
+            'min_price' => $minPrice,
+            'max_price' => $minPrice !== $maxPrice ? $maxPrice : null,
             'description' => $this->faker->randomElement([
                 'Produk khas daerah dengan kualitas terbaik',
                 'Kerajinan tangan asli buatan lokal',
