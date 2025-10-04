@@ -34,7 +34,11 @@ class HomeController extends Controller
                         ->orWhereHas('products', function ($productQuery) use ($search) {
                             $productQuery->where('name', 'like', "%{$search}%")
                                 ->orWhere('type', 'like', "%{$search}%")
-                                ->orWhere('description', 'like', "%{$search}%");
+                                ->orWhere('description', 'like', "%{$search}%")
+                                // Atau cari berdasarkan nama kategori produk
+                                ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                                    $categoryQuery->where('name', 'like', "%{$search}%");
+                                });
                         });
                 });
             })
