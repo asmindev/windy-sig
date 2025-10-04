@@ -5,6 +5,32 @@ import { useState } from 'react';
 import { useRouteCalculation } from './hooks';
 
 export default function Detail({ shop, onOpenChange, onShowRoute }) {
+    const formatPrice = (product) => {
+        const min_price = product.min_price;
+        const max_price = product.max_price;
+
+        if (min_price == null && max_price == null) {
+            return 'Tidak disebutkan';
+        }
+
+        const format_min_price = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(min_price);
+        let format_max_price = '';
+
+        if (max_price) {
+            format_max_price = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+            }).format(max_price);
+        }
+        return max_price
+            ? `${format_min_price} - ${format_max_price}`
+            : format_min_price;
+    };
     const [routeInfo, setRouteInfo] = useState(null);
     const { calculateRoute, isCalculating } = useRouteCalculation({
         setRouteData: (data) => {
@@ -167,13 +193,7 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
                                                 {product.type}
                                             </div>
                                             <div className="mt-1 text-sm font-semibold text-gray-900">
-                                                Rp{' '}
-                                                {Number(
-                                                    product.price,
-                                                ).toLocaleString('id-ID', {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2,
-                                                })}
+                                                {formatPrice(product)}
                                             </div>
                                         </CardHeader>
                                     </Card>
