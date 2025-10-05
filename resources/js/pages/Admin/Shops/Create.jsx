@@ -99,7 +99,7 @@ export default function ShopCreate({ auth }) {
             return;
         }
 
-        router.post(route('shops.store'), values, {
+        router.post(route('admin.shops.store'), values, {
             onSuccess: () => {
                 toast.success('Toko berhasil ditambahkan', {
                     description: 'Toko baru telah disimpan ke dalam sistem',
