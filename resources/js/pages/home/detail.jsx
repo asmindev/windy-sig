@@ -130,6 +130,26 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
                                         {shop.operating_hours}
                                     </td>
                                 </tr>
+                                {shop.rating && (
+                                    <tr>
+                                        <td className="pr-2 align-top text-sm font-medium text-gray-900">
+                                            Rating
+                                        </td>
+                                        <td>:</td>
+                                        <td className="text-sm">
+                                            <span className="font-semibold text-yellow-600">
+                                                ⭐{' '}
+                                                {Number.parseFloat(
+                                                    shop.rating,
+                                                ).toFixed(1)}
+                                            </span>
+                                            <span className="text-gray-600">
+                                                {' '}
+                                                / 5.0
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

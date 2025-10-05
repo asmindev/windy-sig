@@ -23,6 +23,7 @@ class Shop extends Model
         'operating_hours',
         'description',
         'phone',
+        'rating',
     ];
 
     /**
@@ -35,6 +36,7 @@ class Shop extends Model
         return [
             'latitude' => 'decimal:8',
             'longitude' => 'decimal:8',
+            'rating' => 'decimal:2',
         ];
     }
 

@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserLayout from '@/layouts/UserLayout';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Clock, MapPin, Package, Phone } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Package, Phone, Star } from 'lucide-react';
 
 export default function ShopShow({ shop }) {
     const formatPrice = (product) => {
@@ -109,6 +109,25 @@ export default function ShopShow({ shop }) {
                                                 </p>
                                                 <p className="text-sm">
                                                     {shop.phone}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {shop.rating && (
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
+                                            <div>
+                                                <p className="font-medium">
+                                                    Rating di Google Maps
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-semibold text-yellow-600">
+                                                        {Number.parseFloat(
+                                                            shop.rating,
+                                                        ).toFixed(1)}
+                                                    </span>{' '}
+                                                    / 5.0
                                                 </p>
                                             </div>
                                         </div>

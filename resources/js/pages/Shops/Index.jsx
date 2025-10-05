@@ -18,7 +18,7 @@ import {
 import { useGeolocation } from '@/hooks/use-geolocation';
 import UserLayout from '@/layouts/UserLayout';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Clock, MapPin, Search } from 'lucide-react';
+import { Clock, MapPin, Search, Star } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -250,6 +250,20 @@ export default function ShopsIndex({ shops, categories, filters }) {
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <Clock className="h-4 w-4" />
                                                 {shop.operating_hours}
+                                            </div>
+                                        )}
+
+                                        {shop.rating && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                                <span className="font-semibold text-yellow-600">
+                                                    {Number.parseFloat(
+                                                        shop.rating,
+                                                    ).toFixed(1)}
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    / 5.0
+                                                </span>
                                             </div>
                                         )}
 

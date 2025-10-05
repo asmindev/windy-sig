@@ -30,6 +30,7 @@ class UpdateShopRequest extends FormRequest
             'operating_hours' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'phone' => 'nullable|string|max:20',
+            'rating' => 'nullable|numeric|min:1|max:5',
         ];
     }
 
@@ -49,6 +50,9 @@ class UpdateShopRequest extends FormRequest
             'longitude.required' => 'Longitude harus diisi.',
             'longitude.numeric' => 'Longitude harus berupa angka.',
             'longitude.between' => 'Longitude harus antara -180 dan 180.',
+            'rating.numeric' => 'Rating harus berupa angka.',
+            'rating.min' => 'Rating minimal 1.',
+            'rating.max' => 'Rating maksimal 5.',
         ];
     }
 }

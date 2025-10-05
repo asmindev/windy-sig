@@ -60,6 +60,7 @@ class ShopFactory extends Factory
                 'Menjual berbagai cinderamata dan produk UMKM lokal',
             ]),
             'phone' => '0401-'.$this->faker->numerify('######'),
+            'rating' => $this->faker->randomFloat(1, 1, 5),
         ];
     }
 }

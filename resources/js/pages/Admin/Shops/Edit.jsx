@@ -52,6 +52,15 @@ const formSchema = z.object({
     phone: z.string().optional(),
     operating_hours: z.string().optional(),
     description: z.string().optional(),
+    rating: z
+        .string()
+        .optional()
+        .refine(
+            (val) =>
+                !val ||
+                (!isNaN(Number(val)) && Number(val) >= 1 && Number(val) <= 5),
+            'Rating harus berupa angka antara 1 dan 5',
+        ),
 });
 
 export default function ShopEdit({ auth, shop }) {
@@ -71,6 +80,7 @@ export default function ShopEdit({ auth, shop }) {
             phone: shop.phone || '',
             operating_hours: shop.operating_hours || '',
             description: shop.description || '',
+            rating: shop.rating ? shop.rating.toString() : '',
         },
     });
 
@@ -370,6 +380,33 @@ export default function ShopEdit({ auth, shop }) {
                                                     )}
                                                 />
                                             </div>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="rating"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Rating
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="number"
+                                                                step="0.1"
+                                                                min="1"
+                                                                max="5"
+                                                                placeholder="1.0 - 5.0"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription>
+                                                            Rating toko dalam
+                                                            skala 1-5 (opsional)
+                                                        </FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
 
                                             <FormField
                                                 control={form.control}

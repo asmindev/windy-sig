@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AdminLayout from '@/layouts/AdminLayout';
+import { formatPrice } from '@/lib/utils';
 import { route } from '@/ziggy-config';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -19,6 +20,7 @@ import {
     Package,
     Phone,
     Plus,
+    Star,
     Store,
     Trash2,
 } from 'lucide-react';
@@ -40,14 +42,6 @@ export default function AdminShopShow({ auth, shop }) {
                 },
             });
         }
-    };
-
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(price);
     };
 
     const getAvailabilityBadge = (isAvailable) => {
@@ -169,6 +163,19 @@ export default function AdminShopShow({ auth, shop }) {
                                                     </p>
                                                 </div>
                                             )}
+                                            {shop.rating && (
+                                                <div className="flex items-center gap-2">
+                                                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                                    <p className="text-sm text-foreground">
+                                                        <span className="font-semibold">
+                                                            {Number.parseFloat(
+                                                                shop.rating,
+                                                            ).toFixed(1)}
+                                                        </span>{' '}
+                                                        / 5.0
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -270,12 +277,12 @@ export default function AdminShopShow({ auth, shop }) {
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-lg font-semibold text-green-600">
                                                                 {formatPrice(
-                                                                    product.price,
+                                                                    product,
                                                                 )}
                                                             </span>
-                                                            {getAvailabilityBadge(
+                                                            {/* {getAvailabilityBadge(
                                                                 product.is_available,
-                                                            )}
+                                                            )} */}
                                                             {getStockBadge(
                                                                 product.stock_quantity,
                                                             )}
