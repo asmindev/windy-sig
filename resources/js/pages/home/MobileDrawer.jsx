@@ -7,6 +7,8 @@ export default function MobileDrawer({
     onOpenChange,
     shop,
     onShowRoute,
+    manualLocation,
+    setAlternativesDirectly,
 }) {
     // Handle ESC key
     useEffect(() => {
@@ -85,6 +87,8 @@ export default function MobileDrawer({
                             shop={shop}
                             onOpenChange={onOpenChange}
                             onShowRoute={onShowRoute}
+                            manualLocation={manualLocation}
+                            setAlternativesDirectly={setAlternativesDirectly}
                         />
                     </motion.div>
                 </>

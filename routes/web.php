@@ -26,7 +26,6 @@ Route::get('/api/products/search-suggestions', [ProductController::class, 'searc
 Route::prefix('api/routes')->name('api.routes.')->group(function () {
     Route::post('/get-route', [RouteController::class, 'getRoute'])->name('get-route');
     Route::post('/nearest-shops', [RouteController::class, 'findNearestShops'])->name('nearest-shops');
-    Route::post('/batch-routes', [RouteController::class, 'getBatchRoutes'])->name('batch-routes');
 });
 
 // Admin routes

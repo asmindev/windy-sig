@@ -2,20 +2,23 @@ import L from 'leaflet';
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 
-const RouteControl = ({ routeData, onRouteFound }) => {
+const RouteControl = ({
+    routeData,
+    onRouteFound,
+    alternativeRoutes = [],
+    selectedRouteId = null,
+}) => {
     const map = useMap();
 
     useEffect(() => {
         console.log('RouteControl - routeData:', routeData);
+        console.log('RouteControl - alternativeRoutes:', alternativeRoutes);
+        console.log('RouteControl - selectedRouteId:', selectedRouteId);
 
         if (!routeData || !routeData.geometry) {
             console.log('No route data or geometry available');
             return;
         }
-
-        console.log('RouteControl - geometry:', routeData.geometry);
-        console.log('RouteControl - startCoords:', routeData.startCoords);
-        console.log('RouteControl - endCoords:', routeData.endCoords);
 
         // Remove existing route layers
         map.eachLayer((layer) => {
@@ -25,23 +28,40 @@ const RouteControl = ({ routeData, onRouteFound }) => {
         });
 
         try {
-            // Create polyline from OSRM geometry
-            console.log(
-                'Creating polyline from coordinates:',
-                routeData.geometry.coordinates,
-            );
+            // Draw all alternative routes first (faded)
+            if (alternativeRoutes && alternativeRoutes.length > 0) {
+                alternativeRoutes.forEach((route) => {
+                    const isSelected = selectedRouteId === route.id;
 
+                    // Skip if this is the selected route (will be drawn later)
+                    if (isSelected) return;
+
+                    const coordinates = route.data.geometry.coordinates.map(
+                        (coord) => [coord[1], coord[0]],
+                    );
+
+                    // Draw alternative route with faded appearance
+                    L.polyline(coordinates, {
+                        color: '#60a5fa', // Light blue (faded version of main route)
+                        weight: 5,
+                        opacity: 0.7, // Semi-transparent
+                        routeLayer: true,
+                        interactive: false,
+                        // dashArray: '10, 10', // Dashed line to differentiate
+                    }).addTo(map);
+                });
+            }
+
+            // Draw the main/selected route on top
             const coordinates = routeData.geometry.coordinates.map((coord) => [
                 coord[1],
                 coord[0],
             ]);
 
-            console.log('Converted coordinates:', coordinates);
-
             const routePolyline = L.polyline(coordinates, {
-                color: '#2563eb',
+                color: '#2563eb', // Blue color for selected route
                 weight: 5,
-                opacity: 0.8,
+                opacity: 0.9,
                 routeLayer: true,
             }).addTo(map);
 
@@ -82,7 +102,7 @@ const RouteControl = ({ routeData, onRouteFound }) => {
             }
 
             // Fit map to route bounds
-            map.fitBounds(routePolyline.getBounds(), { padding: [20, 20] });
+            map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
 
             // Call callback with route info
             if (onRouteFound) {
@@ -104,7 +124,7 @@ const RouteControl = ({ routeData, onRouteFound }) => {
                 }
             });
         };
-    }, [map, routeData, onRouteFound]);
+    }, [map, routeData, onRouteFound, alternativeRoutes, selectedRouteId]);
 
     return null;
 };

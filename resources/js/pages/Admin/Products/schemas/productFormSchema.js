@@ -34,6 +34,7 @@ export const productFormSchema = z
                 'Stok harus berupa angka positif atau nol',
             ),
         is_available: z.boolean().optional(),
+        top_product: z.boolean().optional(),
     })
     .refine(
         (data) => {
@@ -64,6 +65,7 @@ export const getCreateDefaultValues = () => ({
     image: null,
     stock_quantity: '',
     is_available: true,
+    top_product: false,
 });
 
 /**
@@ -81,6 +83,7 @@ export const getEditDefaultValues = (product) => ({
     image: null, // Always null for file input
     stock_quantity: product.stock_quantity?.toString() || '',
     is_available: product.is_available ?? true,
+    top_product: product.top_product ?? false,
 });
 
 /**
@@ -94,7 +97,7 @@ export const transformFormData = (values) => {
     Object.keys(values).forEach((key) => {
         const value = values[key];
         if (value !== null && value !== undefined && value !== '') {
-            if (key === 'is_available') {
+            if (key === 'is_available' || key === 'top_product') {
                 formData.append(key, value ? '1' : '0');
             } else {
                 formData.append(key, value);

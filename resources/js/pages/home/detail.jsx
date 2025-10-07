@@ -1,10 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
-import { router } from '@inertiajs/react';
+import { Navigation } from 'lucide-react';
 import { useState } from 'react';
-import { useRouteCalculation } from './hooks';
+import { useAlternativeRoutes, useRouteCalculation } from './hooks';
 
-export default function Detail({ shop, onOpenChange, onShowRoute }) {
+export default function Detail({
+    shop,
+    onOpenChange,
+    onShowRoute,
+    manualLocation,
+    setAlternativesDirectly: setParentAlternatives, // Rename untuk clarity
+}) {
     const formatPrice = (product) => {
         const min_price = product.min_price;
         const max_price = product.max_price;
@@ -32,6 +38,8 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
             : format_min_price;
     };
     const [routeInfo, setRouteInfo] = useState(null);
+    const [userCoords, setUserCoords] = useState(null);
+
     const { calculateRoute, isCalculating } = useRouteCalculation({
         setRouteData: (data) => {
             // Pass route data to parent component for map display
@@ -51,26 +59,97 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
         setShowRouteInfo: () => {}, // Not used in detail component
     });
 
+    const {
+        alternativeRoutes,
+        selectedRouteId,
+        isLoadingAlternatives,
+        fetchAlternativeRoutes,
+        selectRoute,
+        clearAlternativeRoutes,
+        setAlternativesDirectly, // Get the new method
+    } = useAlternativeRoutes({
+        setRouteData: (data) => {
+            // Pass route data to parent component for map display
+            if (onShowRoute && typeof onShowRoute === 'function') {
+                onShowRoute({
+                    route: data,
+                    shop: shop,
+                    userPosition: data.startCoords
+                        ? {
+                              latitude: data.startCoords.lat,
+                              longitude: data.startCoords.lng,
+                          }
+                        : null,
+                });
+            }
+        },
+        setShowRouteInfo: () => {},
+    });
+
     const handleGetRoute = async () => {
         try {
+            // Gunakan manualLocation jika ada, jika tidak akan fallback ke GPS
+            const startLocation = manualLocation
+                ? {
+                      lat: manualLocation.latitude,
+                      lng: manualLocation.longitude,
+                  }
+                : null;
+
             await calculateRoute({
                 shopId: shop.id,
                 shopLat: parseFloat(shop.latitude),
                 shopLng: parseFloat(shop.longitude),
                 isAutomatic: false,
-                onSuccess: (result) => {
+                manualStartLocation: startLocation,
+                onSuccess: async (result) => {
                     // Set route info untuk ditampilkan di dalam detail panel
                     setRouteInfo(result.routeInfo);
 
-                    // Update URL
-                    const searchParams = new URLSearchParams();
-                    searchParams.set('active', shop.id.toString());
+                    // Store user coords for alternative routes
+                    const coords = {
+                        lat: result.userPosition.latitude,
+                        lng: result.userPosition.longitude,
+                    };
+                    setUserCoords(coords);
+
+                    // Set alternative routes directly from result
+                    if (result.alternatives && result.alternatives.length > 0) {
+                        setAlternativesDirectly(result.alternatives);
+                        // Also pass to parent component to show RouteSelector on map
+                        if (setParentAlternatives) {
+                            setParentAlternatives(result.alternatives);
+                        }
+                        console.log('Alternatives set:', result.alternatives);
+                    }
+
+                    // Update URL without 'active' parameter to prevent re-opening
+                    const searchParams = new URLSearchParams(
+                        window.location.search,
+                    );
+                    searchParams.delete('active'); // Remove active to prevent re-open
                     searchParams.set(
                         'to',
                         `${shop.latitude},${shop.longitude}`,
                     );
+
+                    // Add start location to URL if set
+                    if (startLocation) {
+                        searchParams.set(
+                            'from',
+                            `${startLocation.lat},${startLocation.lng}`,
+                        );
+                    }
+
                     const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-                    router.visit(newUrl, { preserveState: true });
+                    window.history.replaceState({}, '', newUrl);
+
+                    // Close the drawer/sheet after URL is updated
+                    if (onOpenChange) {
+                        setTimeout(() => {
+                            onOpenChange(false);
+                        }, 100);
+                    }
                 },
             });
         } catch (err) {
@@ -79,8 +158,29 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
         }
     };
 
+    const handleSelectAlternativeRoute = (route) => {
+        if (!userCoords) return;
+
+        selectRoute(
+            route,
+            userCoords.lat,
+            userCoords.lng,
+            parseFloat(shop.latitude),
+            parseFloat(shop.longitude),
+        );
+
+        // Update route info
+        setRouteInfo({
+            distance: route.data.properties.distance,
+            duration: route.data.properties.duration,
+            userPosition: userCoords,
+        });
+    };
+
     const handleHideRoute = () => {
         setRouteInfo(null);
+        setUserCoords(null);
+        clearAlternativeRoutes();
         // Bersihkan rute dari peta juga jika ada callback untuk itu
         if (onShowRoute && typeof onShowRoute === 'function') {
             onShowRoute(null);
@@ -182,9 +282,15 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
 
                                 <div className="text-center text-xs text-gray-500">
                                     Rute ditampilkan di peta
+                                    {alternativeRoutes.length > 1 && (
+                                        <span className="mt-1 block font-medium text-blue-600">
+                                            Pilih rute alternatif di panel peta
+                                        </span>
+                                    )}
                                 </div>
 
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     size="sm"
                                     className="w-full"
@@ -228,31 +334,61 @@ export default function Detail({ shop, onOpenChange, onShowRoute }) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 p-4">
-                {!routeInfo ? (
-                    <Button
-                        variant={'outline'}
-                        className={'mb-2 w-full'}
-                        onClick={handleGetRoute}
-                        disabled={isCalculating}
-                    >
-                        {isCalculating ? 'Mendapatkan Rute...' : 'Rute'}
-                    </Button>
-                ) : (
-                    <Button
-                        variant={'outline'}
-                        className={'mb-2 w-full'}
-                        onClick={handleHideRoute}
-                    >
-                        Sembunyikan Rute
-                    </Button>
+            <div className="space-y-2 p-4">
+                {/* Location Info - show if manual location is set */}
+                {manualLocation && (
+                    <div className="rounded-lg bg-blue-50 p-2 text-xs">
+                        <div className="flex items-center gap-1 text-blue-900">
+                            <Navigation className="h-3 w-3" />
+                            <span className="font-medium">
+                                Lokasi awal dipilih dari peta
+                            </span>
+                        </div>
+                        <p className="mt-1 text-blue-700">
+                            {manualLocation.latitude.toFixed(6)},{' '}
+                            {manualLocation.longitude.toFixed(6)}
+                        </p>
+                        <p className="mt-1 text-xs text-blue-600">
+                            Klik di peta untuk mengubah lokasi awal
+                        </p>
+                    </div>
                 )}
+
+                {/* Route Buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                    {!routeInfo ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="col-span-2 w-full"
+                            onClick={handleGetRoute}
+                            disabled={isCalculating}
+                        >
+                            <Navigation className="mr-2 h-4 w-4" />
+                            {isCalculating
+                                ? 'Menghitung Rute...'
+                                : manualLocation
+                                  ? 'Rute dari Lokasi Terpilih'
+                                  : 'Rute dari Lokasi Saya'}
+                        </Button>
+                    ) : (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="col-span-2 w-full"
+                            onClick={handleHideRoute}
+                        >
+                            Sembunyikan Rute
+                        </Button>
+                    )}
+                </div>
 
                 {/* Close Button */}
                 <Button
-                    className={'w-full'}
+                    type="button"
+                    className="w-full"
                     onClick={() => {
-                        handleHideRoute(); // Reset route info saat tutup
+                        handleHideRoute();
                         onOpenChange(false);
                     }}
                 >

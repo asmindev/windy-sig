@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 class Product extends Model
 {
@@ -25,6 +24,7 @@ class Product extends Model
         'max_price',
         'image',
         'description',
+        'top_product',
     ];
 
     /**
@@ -37,6 +37,7 @@ class Product extends Model
         return [
             'min_price' => 'decimal:2',
             'max_price' => 'decimal:2',
+            'top_product' => 'boolean',
         ];
     }
 
@@ -44,13 +45,6 @@ class Product extends Model
     public function getImageAttribute(): ?string
     {
         $rawImage = $this->attributes['image'] ?? null;
-
-        Log::info('getImageAttribute called');
-        if ($rawImage) {
-            Log::info('Image: '.$rawImage);
-        } else {
-            Log::info('No image available.');
-        }
 
         return $rawImage ? asset('storage/'.$rawImage) : null;
     }

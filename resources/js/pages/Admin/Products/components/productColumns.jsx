@@ -98,6 +98,19 @@ export const getProductColumns = (onDelete) => [
         ),
     },
     {
+        accessorKey: 'top_product',
+        header: 'Top Product',
+        cell: ({ row }) => (
+            <div className="flex items-center space-x-1">
+                <Badge
+                    variant={row.original.top_product ? 'default' : 'secondary'}
+                >
+                    {row.original.top_product ? 'Ya' : 'Tidak'}
+                </Badge>
+            </div>
+        ),
+    },
+    {
         accessorKey: 'price',
         header: 'Harga',
         cell: ({ row }) => (

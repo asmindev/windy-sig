@@ -16,6 +16,7 @@ class RouteController extends Controller
 
     /**
      * Get route from user coordinates to shop coordinates
+     * Returns main route + alternatives (total 3 routes)
      */
     public function getRoute(Request $request): JsonResponse
     {
@@ -35,14 +36,14 @@ class RouteController extends Controller
         }
 
         try {
-            $route = $this->routeService->getRoute(
+            $routeData = $this->routeService->getRoute(
                 $request->user_latitude,
                 $request->user_longitude,
                 $request->shop_latitude,
                 $request->shop_longitude
             );
 
-            if (! $route) {
+            if (! $routeData || ! isset($routeData['main'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unable to calculate route',
@@ -51,7 +52,14 @@ class RouteController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $route,
+                'data' => [
+                    'main' => $routeData['main'],
+                    'alternatives' => $routeData['alternatives'] ?? [],
+                ],
+                'meta' => [
+                    'total_routes' => count($routeData['all'] ?? []),
+                    'has_alternatives' => ! empty($routeData['alternatives']),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -105,51 +113,6 @@ class RouteController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error finding nearest shops: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Get batch routes for multiple shops
-     */
-    public function getBatchRoutes(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'user_latitude' => 'required|numeric|between:-90,90',
-            'user_longitude' => 'required|numeric|between:-180,180',
-            'shops' => 'required|array|min:1|max:10',
-            'shops.*.id' => 'required|integer',
-            'shops.*.latitude' => 'required|numeric|between:-90,90',
-            'shops.*.longitude' => 'required|numeric|between:-180,180',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid parameters provided',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        try {
-            $routes = $this->routeService->getBatchRoutes(
-                $request->user_latitude,
-                $request->user_longitude,
-                $request->shops
-            );
-
-            return response()->json([
-                'success' => true,
-                'data' => $routes,
-                'meta' => [
-                    'total_routes' => count($routes),
-                    'requested_shops' => count($request->shops),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error calculating batch routes: '.$e->getMessage(),
             ], 500);
         }
     }

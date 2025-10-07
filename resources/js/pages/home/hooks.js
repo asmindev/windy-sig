@@ -148,6 +148,7 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
             shopLat,
             shopLng,
             isAutomatic = false,
+            manualStartLocation = null,
             onSuccess = null,
             onError = null,
         }) => {
@@ -163,6 +164,7 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
 
                 console.log('Starting route calculation...');
                 console.log('hasPosition:', hasPosition, 'position:', position);
+                console.log('manualStartLocation:', manualStartLocation);
                 console.log('shopLat:', shopLat, 'shopLng:', shopLng);
 
                 // Show loading notification only if not automatic
@@ -176,11 +178,23 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
                     });
                 }
 
-                // Get user's current location
+                // Get user's current location or use manual location
                 let userPosition = null;
 
+                // Use manual location if provided
+                if (
+                    manualStartLocation &&
+                    manualStartLocation.lat &&
+                    manualStartLocation.lng
+                ) {
+                    userPosition = {
+                        latitude: manualStartLocation.lat,
+                        longitude: manualStartLocation.lng,
+                    };
+                    console.log('Using manual start location:', userPosition);
+                }
                 // Check if we have valid position data from the hook
-                if (position && position.latitude && position.longitude) {
+                else if (position && position.latitude && position.longitude) {
                     // Use existing position from geolocation hook
                     userPosition = {
                         latitude: position.latitude,
@@ -262,9 +276,15 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
                     );
                 }
 
-                // Format route data for display
+                console.log('Route API response:', routeData);
+
+                // Extract main route and alternatives from new response structure
+                const mainRoute = routeData.data.main;
+                const alternatives = routeData.data.alternatives || [];
+
+                // Format main route data for display
                 const formattedRouteData = {
-                    ...routeData.data,
+                    ...mainRoute,
                     startCoords: {
                         lat: userPosition.latitude,
                         lng: userPosition.longitude,
@@ -273,58 +293,80 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
                         lat: shopLat,
                         lng: shopLng,
                     },
-                    geometry: routeData.data.geometry,
-                    distance: routeData.data.properties.distance,
-                    duration: routeData.data.properties.duration,
+                    geometry: mainRoute.geometry,
+                    distance: mainRoute.properties.distance,
+                    duration: mainRoute.properties.duration,
                 };
 
-                // Update route data and show route info
+                // Set main route data
                 setRouteData(formattedRouteData);
                 setShowRouteInfo(true);
 
-                // Update URL if shopId is provided
-                if (shopId) {
-                    const searchParams = new URLSearchParams(
-                        window.location.search,
-                    );
-                    searchParams.set('active', shopId.toString());
-                    searchParams.set('to', `${shopLat},${shopLng}`);
-                    searchParams.set(
-                        'from',
-                        `${userPosition.latitude},${userPosition.longitude}`,
-                    );
-
-                    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-                    window.history.replaceState({}, '', newUrl);
-                }
-
-                // Show success notification only if not automatic
+                // Dismiss loading toast
                 if (!isAutomatic) {
-                    const successMessage = isAutomatic
-                        ? 'Rute otomatis berhasil ditemukan'
-                        : 'Rute berhasil ditemukan';
-
-                    toast.success(successMessage, {
-                        id: 'route-calculation',
-                        description: `Jarak: ${routeData.data.properties.distance} km, Waktu: ${routeData.data.properties.duration} menit`,
-                        duration: 3000,
+                    toast.dismiss('route-calculation');
+                    toast.success('Rute berhasil ditemukan!', {
+                        description: `${mainRoute.properties.distance} km, ${mainRoute.properties.duration} menit`,
                     });
                 }
 
-                // Call success callback with route info
-                if (onSuccess && typeof onSuccess === 'function') {
-                    onSuccess({
-                        route: routeData.data,
-                        userPosition: userPosition,
-                        routeInfo: {
-                            distance: routeData.data.properties.distance,
-                            duration: routeData.data.properties.duration,
-                            userPosition: userPosition,
+                // Prepare result with alternatives
+                const result = {
+                    routeInfo: {
+                        distance: mainRoute.properties.distance,
+                        duration: mainRoute.properties.duration,
+                    },
+                    userPosition,
+                    mainRoute: formattedRouteData,
+                    alternatives: [
+                        // Include main route as first option
+                        {
+                            id: mainRoute.id || 1,
+                            rank: mainRoute.rank || 1,
+                            data: formattedRouteData,
+                            osrm_distance:
+                                mainRoute.osrm_distance ||
+                                mainRoute.properties.distance,
+                            floyd_score:
+                                mainRoute.floyd_score ||
+                                mainRoute.properties.distance,
+                            score:
+                                mainRoute.score ||
+                                mainRoute.properties.distance,
                         },
-                    });
+                        // Then add alternatives
+                        ...alternatives.map((alt) => ({
+                            id: alt.id,
+                            rank: alt.rank,
+                            data: {
+                                ...alt,
+                                startCoords: {
+                                    lat: userPosition.latitude,
+                                    lng: userPosition.longitude,
+                                },
+                                endCoords: {
+                                    lat: shopLat,
+                                    lng: shopLng,
+                                },
+                                geometry: alt.geometry,
+                                distance: alt.properties.distance,
+                                duration: alt.properties.duration,
+                            },
+                            osrm_distance: alt.osrm_distance,
+                            floyd_score: alt.floyd_score,
+                            score: alt.score,
+                        })),
+                    ],
+                };
+
+                console.log('Formatted result with alternatives:', result);
+
+                // Call success callback with alternatives
+                if (onSuccess) {
+                    await onSuccess(result);
                 }
 
-                return formattedRouteData;
+                return result;
             } catch (err) {
                 console.error('Error calculating route:', err);
 
@@ -366,6 +408,154 @@ export function useRouteCalculation({ setRouteData, setShowRouteInfo }) {
         isCalculating,
     };
 }
+
+/**
+ * Custom hook untuk menghitung rute alternatif
+ */
+export function useAlternativeRoutes({ setRouteData, setShowRouteInfo }) {
+    const [alternativeRoutes, setAlternativeRoutes] = useState([]);
+    const [selectedRouteId, setSelectedRouteId] = useState(null);
+    const [isLoadingAlternatives, setIsLoadingAlternatives] = useState(false);
+
+    // New method to set alternatives directly (from main route response)
+    const setAlternativesDirectly = useCallback((alternatives) => {
+        setAlternativeRoutes(alternatives);
+        // Auto-select first route if available
+        if (alternatives.length > 0) {
+            setSelectedRouteId(alternatives[0].id);
+        }
+    }, []);
+
+    const fetchAlternativeRoutes = useCallback(
+        async ({ userLat, userLng, shopLat, shopLng }) => {
+            try {
+                setIsLoadingAlternatives(true);
+
+                toast.loading('Mencari rute alternatif...', {
+                    id: 'alternative-routes',
+                });
+
+                const requestBody = {
+                    user_latitude: userLat,
+                    user_longitude: userLng,
+                    shop_latitude: shopLat,
+                    shop_longitude: shopLng,
+                };
+
+                const response = await fetch(
+                    route('api.routes.alternative-routes'),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN':
+                                document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    ?.getAttribute('content') || '',
+                        },
+                        body: JSON.stringify(requestBody),
+                    },
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(
+                        errorData.message ||
+                            'Gagal mendapatkan rute alternatif',
+                    );
+                }
+
+                const data = await response.json();
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    throw new Error('Tidak ada rute alternatif yang tersedia');
+                }
+
+                setAlternativeRoutes(data.data);
+
+                // Auto-select recommended route (first one)
+                if (data.data.length > 0) {
+                    const recommendedRoute = data.data[0];
+                    setSelectedRouteId(recommendedRoute.id);
+
+                    // Display the recommended route
+                    const formattedRouteData = {
+                        ...recommendedRoute.data,
+                        startCoords: { lat: userLat, lng: userLng },
+                        endCoords: { lat: shopLat, lng: shopLng },
+                        geometry: recommendedRoute.data.geometry,
+                        distance: recommendedRoute.data.properties.distance,
+                        duration: recommendedRoute.data.properties.duration,
+                    };
+
+                    setRouteData(formattedRouteData);
+                    setShowRouteInfo(true);
+                }
+
+                toast.success(`${data.data.length} rute ditemukan`, {
+                    id: 'alternative-routes',
+                    description: 'Pilih rute yang Anda inginkan',
+                    duration: 3000,
+                });
+
+                return data.data;
+            } catch (err) {
+                console.error('Error fetching alternative routes:', err);
+                toast.error('Gagal mendapatkan rute alternatif', {
+                    id: 'alternative-routes',
+                    description: err.message || 'Silakan coba lagi nanti.',
+                    duration: 4000,
+                });
+                setAlternativeRoutes([]);
+                throw err;
+            } finally {
+                setIsLoadingAlternatives(false);
+            }
+        },
+        [setRouteData, setShowRouteInfo],
+    );
+
+    const selectRoute = useCallback(
+        (route, userLat, userLng, shopLat, shopLng) => {
+            setSelectedRouteId(route.id);
+
+            // Format and display the selected route
+            const formattedRouteData = {
+                ...route.data,
+                startCoords: { lat: userLat, lng: userLng },
+                endCoords: { lat: shopLat, lng: shopLng },
+                geometry: route.data.geometry,
+                distance: route.data.properties.distance,
+                duration: route.data.properties.duration,
+            };
+
+            setRouteData(formattedRouteData);
+            setShowRouteInfo(true);
+
+            toast.success(`Rute dipilih: ${route.name}`, {
+                description: `Jarak: ${route.data.properties.distance} km, Waktu: ~${Math.round(route.data.properties.duration)} menit`,
+                duration: 3000,
+            });
+        },
+        [setRouteData, setShowRouteInfo],
+    );
+
+    const clearAlternativeRoutes = useCallback(() => {
+        setAlternativeRoutes([]);
+        setSelectedRouteId(null);
+    }, []);
+
+    return {
+        alternativeRoutes,
+        selectedRouteId,
+        isLoadingAlternatives,
+        fetchAlternativeRoutes,
+        selectRoute,
+        clearAlternativeRoutes,
+        setAlternativesDirectly, // Export the new method
+    };
+}
+
 /**
  * Custom hook untuk auto-routing berdasarkan URL parameters
  */
@@ -559,10 +749,28 @@ export function useSearch(searchValue, setSearchValue, search) {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
+        e.stopPropagation();
+
+        // Get current URL params to preserve them
+        const currentParams = new URLSearchParams(window.location.search);
+        const params = { search: searchValue };
+
+        // Preserve active, from, to parameters if they exist
+        if (currentParams.has('active')) {
+            params.active = currentParams.get('active');
+        }
+        if (currentParams.has('from')) {
+            params.from = currentParams.get('from');
+        }
+        if (currentParams.has('to')) {
+            params.to = currentParams.get('to');
+        }
+
         router.visit(route('home'), {
-            data: { search: searchValue },
+            data: params,
             preserveState: true,
             preserveScroll: true,
+            replace: true,
         });
     };
 

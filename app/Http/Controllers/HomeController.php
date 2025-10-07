@@ -53,7 +53,12 @@ class HomeController extends Controller
             if (count($coords) === 2 && is_numeric($coords[0]) && is_numeric($coords[1])) {
                 $lat = (float) $coords[0];
                 $lng = (float) $coords[1];
-                $activeShop = $this->routeService->findShopByCoordinates($lat, $lng);
+
+                // Find shop by exact coordinates match
+                $activeShop = $shops->first(function ($shop) use ($lat, $lng) {
+                    return abs((float) $shop->latitude - $lat) < 0.0001
+                        && abs((float) $shop->longitude - $lng) < 0.0001;
+                });
             }
         }
 

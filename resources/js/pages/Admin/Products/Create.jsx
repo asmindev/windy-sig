@@ -6,6 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Form,
     FormControl,
@@ -291,6 +292,36 @@ export default function ProductCreate({ auth, shops, categories }) {
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            {/* Top Product */}
+                                            <FormField
+                                                control={form.control}
+                                                name="top_product"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={
+                                                                    field.value
+                                                                }
+                                                                onCheckedChange={
+                                                                    field.onChange
+                                                                }
+                                                            />
+                                                        </FormControl>
+                                                        <div className="space-y-1 leading-none">
+                                                            <FormLabel>
+                                                                Top Product
+                                                            </FormLabel>
+                                                            <FormDescription>
+                                                                Tandai produk
+                                                                ini sebagai
+                                                                produk unggulan
+                                                            </FormDescription>
+                                                        </div>
                                                     </FormItem>
                                                 )}
                                             />

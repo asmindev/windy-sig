@@ -7,6 +7,8 @@ export default function DesktopSheet({
     onOpenChange,
     shop,
     onShowRoute,
+    manualLocation,
+    setAlternativesDirectly,
 }) {
     // Handle ESC key
     useEffect(() => {
@@ -71,6 +73,8 @@ export default function DesktopSheet({
                             shop={shop}
                             onOpenChange={onOpenChange}
                             onShowRoute={onShowRoute}
+                            manualLocation={manualLocation}
+                            setAlternativesDirectly={setAlternativesDirectly}
                         />
                     </motion.div>
                 </>

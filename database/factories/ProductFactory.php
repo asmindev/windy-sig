@@ -50,6 +50,7 @@ class ProductFactory extends Factory
                 'Souvenir authentik khas Kendari',
             ]),
             'image' => null, // We'll add images later if needed
+            'top_product' => $this->faker->boolean(20), // 20% chance to be top product
         ];
     }
 }
