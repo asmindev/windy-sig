@@ -322,7 +322,7 @@ export default function Detail({
                                             .map((product) => (
                                                 <Card
                                                     key={product.id}
-                                                    className="border-yellow-300 bg-yellow-50"
+                                                    className="border-yellow-300 bg-yellow-50 p-0"
                                                 >
                                                     <CardHeader className="p-2">
                                                         <div className="mb-1 flex items-center gap-1">
@@ -360,7 +360,10 @@ export default function Detail({
                                 shop.products
                                     .filter((product) => !product.top_product)
                                     .map((product) => (
-                                        <Card key={product.id}>
+                                        <Card
+                                            key={product.id}
+                                            className={'p-0'}
+                                        >
                                             <CardHeader className="p-2">
                                                 <div className="text-sm font-medium text-gray-900">
                                                     {product.name}

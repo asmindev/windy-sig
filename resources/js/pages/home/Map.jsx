@@ -19,6 +19,27 @@ import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE, DEFAULT_ZOOM } from './constants';
 delete L.Icon.Default.prototype._getIconUrl;
 
 /**
+ * Custom icon untuk nearest shops
+ */
+const customNearestShopIcon = L.divIcon({
+    className: 'custom-nearest-shop-marker',
+    html: `
+        <div class="relative">
+            <div class="absolute -inset-3 bg-blue-500 rounded-full opacity-30 animate-pulse"></div>
+            <div class="w-8 h-8 bg-blue-600 border-3 border-white rounded-full shadow-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+            </div>
+            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-600 rounded-full border border-white"></div>
+        </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+});
+
+/**
  * Component untuk menangani klik pada peta
  */
 function MapClickHandler({ onMapClick, isLocationPickerMode }) {
@@ -54,6 +75,7 @@ export default function Map({
     manualLocation,
     alternativeRoutes = [],
     selectedRouteId = null,
+    showNearestShops = false,
 }) {
     const [userLocation, setUserLocation] = useState(null);
     const [shouldFlyTo, setShouldFlyTo] = useState(false);
@@ -224,28 +246,50 @@ export default function Map({
 
                 {/* Markers untuk setiap toko dengan label nama */}
                 {shops &&
-                    shops.map((shop) => (
-                        <Marker
-                            key={shop.id}
-                            position={[
-                                parseFloat(shop.latitude),
-                                parseFloat(shop.longitude),
-                            ]}
-                            eventHandlers={{
-                                click: () => onMarkerClick(shop),
-                            }}
-                            icon={customIcon}
-                        >
-                            <Tooltip
-                                direction="top"
-                                offset={[0, -40]}
-                                permanent={true}
-                                className="custom-tooltip"
+                    shops.map((shop) => {
+                        const isNearestShop = showNearestShops;
+                        return (
+                            <Marker
+                                key={shop.id}
+                                position={[
+                                    parseFloat(shop.latitude),
+                                    parseFloat(shop.longitude),
+                                ]}
+                                eventHandlers={{
+                                    click: () => onMarkerClick(shop),
+                                }}
+                                icon={
+                                    isNearestShop
+                                        ? customNearestShopIcon
+                                        : customIcon
+                                }
                             >
-                                {shop.name}
-                            </Tooltip>
-                        </Marker>
-                    ))}
+                                <Tooltip
+                                    direction="top"
+                                    offset={[0, -40]}
+                                    permanent={true}
+                                    className="custom-tooltip"
+                                >
+                                    <div className="text-center">
+                                        <div className="font-semibold">
+                                            {shop.name}
+                                        </div>
+                                        {isNearestShop && shop.distance && (
+                                            <div className="text-xs text-blue-600">
+                                                {shop.distance} km
+                                            </div>
+                                        )}
+                                        {isNearestShop &&
+                                            shop.products_count && (
+                                                <div className="text-xs text-gray-600">
+                                                    {shop.products_count} produk
+                                                </div>
+                                            )}
+                                    </div>
+                                </Tooltip>
+                            </Marker>
+                        );
+                    })}
             </MapContainer>
         </>
     );

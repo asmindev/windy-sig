@@ -1,6 +1,10 @@
 import { RouteSelector } from '@/components/RouteSelector';
+import { useGeolocation } from '@/hooks/use-geolocation';
 import { useFlashToast } from '@/hooks/useFlashToast';
+import { route } from '@/ziggy-config';
+import axios from 'axios';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import DesktopSheet from './DesktopSheet';
 import {
     useAlternativeRoutes,
@@ -25,6 +29,13 @@ export default function Page({ shops, search, activeShop, routingData }) {
 
     // Manual location state - untuk menyimpan lokasi yang dipilih dari peta
     const [manualLocation, setManualLocation] = useState(null);
+
+    // Nearest shops state
+    const [nearestShops, setNearestShops] = useState([]);
+    const [isFindingNearest, setIsFindingNearest] = useState(false);
+
+    // Geolocation hook
+    const { position: userPosition, hasPosition } = useGeolocation();
 
     // State management menggunakan custom hooks
     const {
@@ -105,6 +116,73 @@ export default function Page({ shops, search, activeShop, routingData }) {
         setManualLocation({ latitude: lat, longitude: lng });
     };
 
+    // Handler untuk mencari toko terdekat
+    const handleFindNearestShops = async () => {
+        // Gunakan koordinat manual jika ada, jika tidak gunakan koordinat user
+        const locationToUse =
+            manualLocation ||
+            (hasPosition && userPosition
+                ? {
+                      latitude: userPosition.latitude,
+                      longitude: userPosition.longitude,
+                  }
+                : null);
+
+        if (!locationToUse) {
+            toast.error('Tidak ada lokasi yang tersedia', {
+                description:
+                    'Silakan aktifkan lokasi atau pilih lokasi di peta',
+            });
+            return;
+        }
+
+        try {
+            setIsFindingNearest(true);
+
+            toast.loading('Mencari toko terdekat...', { id: 'find-nearest' });
+
+            const response = await axios.post(
+                route('api.routes.nearest-shops'),
+                {
+                    latitude: locationToUse.latitude,
+                    longitude: locationToUse.longitude,
+                    radius: 10, // 10km radius
+                    limit: 20, // max 20 shops
+                },
+            );
+
+            if (response.data.success) {
+                const shops = response.data.data;
+                setNearestShops(shops);
+
+                toast.success(`Ditemukan ${shops.length} toko terdekat`, {
+                    id: 'find-nearest',
+                    description: `Dalam radius ${response.data.meta.radius_km} km`,
+                    duration: 3000,
+                });
+
+                // Clear existing route data when showing nearest shops
+                setRouteData(null);
+                setShowRouteInfo(false);
+                clearAlternativeRoutes();
+            } else {
+                throw new Error(
+                    response.data.message || 'Gagal mencari toko terdekat',
+                );
+            }
+        } catch (error) {
+            console.error('Error finding nearest shops:', error);
+            toast.error('Gagal mencari toko terdekat', {
+                id: 'find-nearest',
+                description: error.message || 'Silakan coba lagi nanti.',
+                duration: 4000,
+            });
+            setNearestShops([]);
+        } finally {
+            setIsFindingNearest(false);
+        }
+    };
+
     // Handler untuk route found - optional, bisa dikosongkan jika tidak diperlukan
     const handleRouteFound = (route) => {
         // Bisa digunakan untuk handle ketika route ditemukan
@@ -119,6 +197,9 @@ export default function Page({ shops, search, activeShop, routingData }) {
                     searchValue={searchValue}
                     onSearchChange={handleSearchChange}
                     onSearchSubmit={handleSearchSubmit}
+                    onFindNearestShops={handleFindNearestShops}
+                    userLocation={hasPosition ? userPosition : null}
+                    manualLocation={manualLocation}
                 />
 
                 {/* Route Selector Overlay - tampil di map */}
@@ -194,7 +275,7 @@ export default function Page({ shops, search, activeShop, routingData }) {
 
                 {/* Map */}
                 <Map
-                    shops={shops}
+                    shops={nearestShops.length > 0 ? nearestShops : shops}
                     routeData={routeData}
                     onMarkerClick={handleMarkerClick}
                     onRouteFound={handleRouteFound}
@@ -202,6 +283,7 @@ export default function Page({ shops, search, activeShop, routingData }) {
                     manualLocation={manualLocation}
                     alternativeRoutes={alternativeRoutes}
                     selectedRouteId={selectedRouteId}
+                    showNearestShops={nearestShops.length > 0}
                 />
             </div>
         </>

@@ -40,7 +40,7 @@ export default function MapControls({
 
             {/* Expanded Controls */}
 
-            <div className="flex flex-col gap-2 rounded-lg bg-white p-2 shadow-lg">
+            <div className="flex flex-col gap-y-2 rounded-lg bg-white p-1 shadow-lg">
                 {/* Zoom In */}
                 <Button
                     size="icon"
@@ -74,7 +74,7 @@ export default function MapControls({
                     onClick={handleMyLocation}
                     title="Lokasi Saya"
                 >
-                    <Locate className="h-5 w-5 text-blue-600" />
+                    <Locate className="h-5 w-5 text-primary" />
                 </Button>
 
                 {/* Toggle Location Picker */}
@@ -83,7 +83,7 @@ export default function MapControls({
                     variant={isLocationPickerMode ? 'default' : 'ghost'}
                     className={`h-10 w-10 ${
                         isLocationPickerMode
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : ''
                     }`}
                     onClick={handleTogglePicker}
