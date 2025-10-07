@@ -194,78 +194,177 @@ export default function ShopShow({ shop }) {
 
                         {/* Products Tab */}
                         <TabsContent value="products" className="mt-6">
-                            <div>
-                                <h2 className="mb-6 text-xl font-bold">
-                                    Produk yang Tersedia
-                                </h2>
+                            <div className="space-y-8">
+                                {/* Produk Unggulan Section */}
+                                {shop.products.some(
+                                    (product) => product.top_product,
+                                ) && (
+                                    <div>
+                                        <div className="mb-4 flex items-center gap-2">
+                                            <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
+                                            <h2 className="text-xl font-bold">
+                                                Produk Unggulan
+                                            </h2>
+                                        </div>
 
-                                {shop.products.length > 0 ? (
-                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                        {shop.products.map((product) => (
-                                            <Card
-                                                key={product.id}
-                                                className="overflow-hidden p-0"
-                                            >
-                                                <div className="flex h-full">
-                                                    <div className="h-full max-h-40 w-40 min-w-40 overflow-hidden">
-                                                        <img
-                                                            src={
-                                                                product.image ||
-                                                                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png'
-                                                            }
-                                                            alt={product.name}
-                                                            className="h-full w-full object-cover transition-transform hover:scale-105"
-                                                        />
-                                                    </div>
-                                                    <div className="flex flex-1 flex-col justify-between p-2">
-                                                        <CardHeader className="w-full p-0">
-                                                            <div className="items-start justify-between">
-                                                                <CardTitle className="">
-                                                                    {
+                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                            {shop.products
+                                                .filter(
+                                                    (product) =>
+                                                        product.top_product,
+                                                )
+                                                .map((product) => (
+                                                    <Card
+                                                        key={product.id}
+                                                        className="overflow-hidden border-2 border-yellow-500/20 p-0 shadow-lg"
+                                                    >
+                                                        <div className="relative flex h-full">
+                                                            <Badge
+                                                                variant="default"
+                                                                className="absolute top-2 right-2 z-10 bg-yellow-500 hover:bg-yellow-600"
+                                                            >
+                                                                <Star className="mr-1 h-3 w-3 fill-white" />
+                                                                Unggulan
+                                                            </Badge>
+                                                            <div className="h-full max-h-40 w-40 min-w-40 overflow-hidden">
+                                                                <img
+                                                                    src={
+                                                                        product.image ||
+                                                                        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png'
+                                                                    }
+                                                                    alt={
                                                                         product.name
                                                                     }
-                                                                </CardTitle>
+                                                                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                                                                />
                                                             </div>
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className="text-xs"
-                                                            >
-                                                                {product
-                                                                    .category
-                                                                    ?.name ||
-                                                                    'uncategorized'}
-                                                            </Badge>
-                                                            <CardDescription className="text-sm text-gray-600">
-                                                                {
-                                                                    product.description
-                                                                }
-                                                            </CardDescription>
-                                                        </CardHeader>
-                                                        <CardContent className="p-0">
-                                                            <p className="text-sm font-medium text-green-600">
-                                                                {formatPrice(
-                                                                    product,
-                                                                )}
-                                                            </p>
-                                                        </CardContent>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        ))}
+                                                            <div className="flex flex-1 flex-col justify-between p-2">
+                                                                <CardHeader className="w-full p-0">
+                                                                    <div className="items-start justify-between">
+                                                                        <CardTitle className="">
+                                                                            {
+                                                                                product.name
+                                                                            }
+                                                                        </CardTitle>
+                                                                    </div>
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="text-xs"
+                                                                    >
+                                                                        {product
+                                                                            .category
+                                                                            ?.name ||
+                                                                            'uncategorized'}
+                                                                    </Badge>
+                                                                    <CardDescription className="text-sm text-gray-600">
+                                                                        {
+                                                                            product.description
+                                                                        }
+                                                                    </CardDescription>
+                                                                </CardHeader>
+                                                                <CardContent className="p-0">
+                                                                    <p className="text-sm font-medium text-green-600">
+                                                                        {formatPrice(
+                                                                            product,
+                                                                        )}
+                                                                    </p>
+                                                                </CardContent>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                ))}
+                                        </div>
                                     </div>
-                                ) : (
-                                    <Card>
-                                        <CardContent className="py-8 text-center">
-                                            <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                                            <h3 className="text-lg font-medium text-gray-900">
-                                                Belum ada produk
-                                            </h3>
-                                            <p className="text-gray-600">
-                                                Produk akan segera ditambahkan
-                                            </p>
-                                        </CardContent>
-                                    </Card>
                                 )}
+
+                                {/* Produk Lainnya Section */}
+                                <div>
+                                    <h2 className="mb-4 text-xl font-bold">
+                                        {shop.products.some(
+                                            (product) => product.top_product,
+                                        )
+                                            ? 'Produk Lainnya'
+                                            : 'Produk yang Tersedia'}
+                                    </h2>
+
+                                    {shop.products.filter(
+                                        (product) => !product.top_product,
+                                    ).length > 0 ? (
+                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                            {shop.products
+                                                .filter(
+                                                    (product) =>
+                                                        !product.top_product,
+                                                )
+                                                .map((product) => (
+                                                    <Card
+                                                        key={product.id}
+                                                        className="overflow-hidden p-0"
+                                                    >
+                                                        <div className="flex h-full">
+                                                            <div className="h-full max-h-40 w-40 min-w-40 overflow-hidden">
+                                                                <img
+                                                                    src={
+                                                                        product.image ||
+                                                                        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png'
+                                                                    }
+                                                                    alt={
+                                                                        product.name
+                                                                    }
+                                                                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-1 flex-col justify-between p-2">
+                                                                <CardHeader className="w-full p-0">
+                                                                    <div className="items-start justify-between">
+                                                                        <CardTitle className="">
+                                                                            {
+                                                                                product.name
+                                                                            }
+                                                                        </CardTitle>
+                                                                    </div>
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="text-xs"
+                                                                    >
+                                                                        {product
+                                                                            .category
+                                                                            ?.name ||
+                                                                            'uncategorized'}
+                                                                    </Badge>
+                                                                    <CardDescription className="text-sm text-gray-600">
+                                                                        {
+                                                                            product.description
+                                                                        }
+                                                                    </CardDescription>
+                                                                </CardHeader>
+                                                                <CardContent className="p-0">
+                                                                    <p className="text-sm font-medium text-green-600">
+                                                                        {formatPrice(
+                                                                            product,
+                                                                        )}
+                                                                    </p>
+                                                                </CardContent>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                ))}
+                                        </div>
+                                    ) : shop.products.length === 0 ? (
+                                        <Card>
+                                            <CardContent className="py-8 text-center">
+                                                <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                                                <h3 className="text-lg font-medium text-gray-900">
+                                                    Belum ada produk
+                                                </h3>
+                                                <p className="text-gray-600">
+                                                    Produk akan segera
+                                                    ditambahkan
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    ) : null}
+                                </div>
                             </div>
                         </TabsContent>
 

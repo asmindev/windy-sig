@@ -304,26 +304,76 @@ export default function Detail({
 
                     {/* product list */}
                     <div>
+                        {/* Top Products Section */}
+                        {shop.products &&
+                            shop.products.some(
+                                (product) => product.top_product,
+                            ) && (
+                                <div className="mb-4">
+                                    <h3 className="text-md mb-2 px-4 pt-4 font-semibold text-gray-900">
+                                        🌟 Produk Unggulan
+                                    </h3>
+                                    <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto px-4">
+                                        {shop.products
+                                            .filter(
+                                                (product) =>
+                                                    product.top_product,
+                                            )
+                                            .map((product) => (
+                                                <Card
+                                                    key={product.id}
+                                                    className="border-yellow-300 bg-yellow-50"
+                                                >
+                                                    <CardHeader className="p-2">
+                                                        <div className="mb-1 flex items-center gap-1">
+                                                            <span className="text-xs font-bold text-yellow-600">
+                                                                ⭐ TOP
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {product.name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-600">
+                                                            {product.type}
+                                                        </div>
+                                                        <div className="mt-1 text-sm font-semibold text-gray-900">
+                                                            {formatPrice(
+                                                                product,
+                                                            )}
+                                                        </div>
+                                                    </CardHeader>
+                                                </Card>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+
+                        {/* Regular Products Section */}
                         <h3 className="text-md px-4 pt-4 font-semibold text-gray-900">
-                            Produk
+                            {shop.products &&
+                            shop.products.some((product) => product.top_product)
+                                ? 'Produk Lainnya'
+                                : 'Produk'}
                         </h3>
                         <div className="grid max-h-96 grid-cols-2 gap-2 overflow-y-auto px-4 pt-2">
                             {shop.products && shop.products.length > 0 ? (
-                                shop.products.map((product) => (
-                                    <Card key={product.id}>
-                                        <CardHeader className="p-2">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {product.name}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                {product.type}
-                                            </div>
-                                            <div className="mt-1 text-sm font-semibold text-gray-900">
-                                                {formatPrice(product)}
-                                            </div>
-                                        </CardHeader>
-                                    </Card>
-                                ))
+                                shop.products
+                                    .filter((product) => !product.top_product)
+                                    .map((product) => (
+                                        <Card key={product.id}>
+                                            <CardHeader className="p-2">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {product.name}
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    {product.type}
+                                                </div>
+                                                <div className="mt-1 text-sm font-semibold text-gray-900">
+                                                    {formatPrice(product)}
+                                                </div>
+                                            </CardHeader>
+                                        </Card>
+                                    ))
                             ) : (
                                 <p className="col-span-2 text-sm text-gray-600">
                                     Tidak ada produk tersedia

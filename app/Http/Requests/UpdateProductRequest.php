@@ -33,6 +33,7 @@ class UpdateProductRequest extends FormRequest
             'image' => 'nullable|image|max:10240', // 10MB max (sesuai PHP limits)
             'is_available' => 'boolean',
             'stock_quantity' => 'nullable|integer|min:0',
+            'top_product' => 'boolean',
         ];
     }
 
