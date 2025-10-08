@@ -46,9 +46,10 @@ class ShopController extends Controller
 
             // If sorting by distance, the withinRadius scope already handles ordering
             // Otherwise, we can add other sorting options here
-        } elseif ($request->sort !== 'distance') {
-            // Default sorting when no location is provided
-            $query->orderBy('name');
+        } else {
+            // Default sorting by rating (highest first), then by name
+            $query->orderByRaw('rating IS NULL, rating DESC')
+                ->orderBy('name');
         }
 
         $shops = $query->paginate(12);
