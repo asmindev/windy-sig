@@ -117,12 +117,12 @@ export default function ShopsIndex({ shops, categories, filters }) {
     return (
         <UserLayout>
             <div className="py-8">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-foreground">
+                <div className="mx-auto max-w-7xl overflow-hidden px-4 sm:px-6 lg:px-8">
+                    <div className="mb-8 rounded-2xl bg-gradient-to-b from-primary via-primary/80 to-transparent p-6 text-center">
+                        <h1 className="text-3xl font-bold text-white">
                             Toko Oleh-Oleh di Kendari
                         </h1>
-                        <p className="mt-2 text-muted-foreground">
+                        <p className="mt-2 text-white">
                             Temukan berbagai toko oleh-oleh dan souvenir khas
                             Kendari
                         </p>
