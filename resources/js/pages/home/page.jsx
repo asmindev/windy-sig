@@ -23,9 +23,22 @@ import {
     createSheetOpenChangeHandler,
 } from './utils';
 
-export default function Page({ shops, search, activeShop, routingData }) {
+export default function Page({
+    shops,
+    search,
+    activeShop,
+    routingData,
+    categories,
+}) {
     // Flash toast for Laravel flash messages
     useFlashToast();
+
+    // Parse selected categories from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoriesParam = urlParams.get('categories');
+    const selectedCategoryIds = categoriesParam
+        ? categoriesParam.split(',').map((id) => parseInt(id))
+        : [];
 
     // Manual location state - untuk menyimpan lokasi yang dipilih dari peta
     const [manualLocation, setManualLocation] = useState(null);
@@ -189,6 +202,17 @@ export default function Page({ shops, search, activeShop, routingData }) {
         // Misalnya untuk update state atau analytics
     };
 
+    // Handler untuk clear semua routes dan manual location
+    const handleClearRoutes = () => {
+        setRouteData(null);
+        setShowRouteInfo(false);
+        clearAlternativeRoutes();
+    };
+
+    const handleClearManualLocation = () => {
+        setManualLocation(null);
+    };
+
     return (
         <>
             <div className="relative flex h-screen w-full flex-col">
@@ -200,6 +224,8 @@ export default function Page({ shops, search, activeShop, routingData }) {
                     onFindNearestShops={handleFindNearestShops}
                     userLocation={hasPosition ? userPosition : null}
                     manualLocation={manualLocation}
+                    categories={categories}
+                    selectedCategories={selectedCategoryIds}
                 />
 
                 {/* Route Selector Overlay - tampil di map */}
@@ -284,6 +310,8 @@ export default function Page({ shops, search, activeShop, routingData }) {
                     alternativeRoutes={alternativeRoutes}
                     selectedRouteId={selectedRouteId}
                     showNearestShops={nearestShops.length > 0}
+                    onClearRoutes={handleClearRoutes}
+                    onClearManualLocation={handleClearManualLocation}
                 />
             </div>
         </>

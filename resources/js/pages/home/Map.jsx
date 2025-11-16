@@ -45,17 +45,14 @@ const customNearestShopIcon = L.divIcon({
 function MapClickHandler({ onMapClick, isLocationPickerMode }) {
     useMapEvents({
         click: (e) => {
-            if (onMapClick) {
+            if (onMapClick && isLocationPickerMode) {
                 const { lat, lng } = e.latlng;
                 onMapClick(lat, lng);
 
-                // Show toast only in location picker mode
-                if (isLocationPickerMode) {
-                    toast.success('Lokasi dipilih', {
-                        description: `Koordinat: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-                        duration: 3000,
-                    });
-                }
+                toast.success('Lokasi dipilih', {
+                    description: `Koordinat: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                    duration: 3000,
+                });
             }
         },
     });
@@ -76,6 +73,8 @@ export default function Map({
     alternativeRoutes = [],
     selectedRouteId = null,
     showNearestShops = false,
+    onClearRoutes,
+    onClearManualLocation,
 }) {
     const [userLocation, setUserLocation] = useState(null);
     const [shouldFlyTo, setShouldFlyTo] = useState(false);
@@ -92,6 +91,19 @@ export default function Map({
     };
 
     const handleRequestLocation = () => {
+        // Clear routes and manual location when requesting user location
+        if (onClearRoutes) {
+            onClearRoutes();
+        }
+        if (onClearManualLocation) {
+            onClearManualLocation();
+        }
+
+        // Disable location picker mode if active
+        if (isLocationPickerMode) {
+            setIsLocationPickerMode(false);
+        }
+
         // Request user location using geolocation API
         if ('geolocation' in navigator) {
             toast.loading('Mendapatkan lokasi...', { id: 'geolocation' });

@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import axios from 'axios';
 import { Navigation } from 'lucide-react';
 import { useState } from 'react';
-import { useAlternativeRoutes, useRouteCalculation } from './hooks';
+import { toast } from 'sonner';
 
 export default function Detail({
     shop,
@@ -39,148 +41,200 @@ export default function Detail({
     };
     const [routeInfo, setRouteInfo] = useState(null);
     const [userCoords, setUserCoords] = useState(null);
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [alternativeRoutes, setAlternativeRoutes] = useState([]);
 
-    const { calculateRoute, isCalculating } = useRouteCalculation({
-        setRouteData: (data) => {
-            // Pass route data to parent component for map display
-            if (onShowRoute && typeof onShowRoute === 'function') {
-                onShowRoute({
-                    route: data,
-                    shop: shop,
-                    userPosition: data.startCoords
-                        ? {
-                              latitude: data.startCoords.lat,
-                              longitude: data.startCoords.lng,
-                          }
-                        : null,
-                });
-            }
-        },
-        setShowRouteInfo: () => {}, // Not used in detail component
-    });
-
-    const {
-        alternativeRoutes,
-        selectedRouteId,
-        isLoadingAlternatives,
-        fetchAlternativeRoutes,
-        selectRoute,
-        clearAlternativeRoutes,
-        setAlternativesDirectly, // Get the new method
-    } = useAlternativeRoutes({
-        setRouteData: (data) => {
-            // Pass route data to parent component for map display
-            if (onShowRoute && typeof onShowRoute === 'function') {
-                onShowRoute({
-                    route: data,
-                    shop: shop,
-                    userPosition: data.startCoords
-                        ? {
-                              latitude: data.startCoords.lat,
-                              longitude: data.startCoords.lng,
-                          }
-                        : null,
-                });
-            }
-        },
-        setShowRouteInfo: () => {},
-    });
+    const { getCurrentPosition, hasPosition, position } = useGeolocation();
 
     const handleGetRoute = async () => {
         try {
-            // Gunakan manualLocation jika ada, jika tidak akan fallback ke GPS
-            const startLocation = manualLocation
-                ? {
-                      lat: manualLocation.latitude,
-                      lng: manualLocation.longitude,
-                  }
-                : null;
+            setIsCalculating(true);
+            toast.loading('Menghitung rute...', { id: 'route-calculation' });
 
-            await calculateRoute({
-                shopId: shop.id,
-                shopLat: parseFloat(shop.latitude),
-                shopLng: parseFloat(shop.longitude),
-                isAutomatic: false,
-                manualStartLocation: startLocation,
-                onSuccess: async (result) => {
-                    // Set route info untuk ditampilkan di dalam detail panel
-                    setRouteInfo(result.routeInfo);
+            // Get user position
+            let userPosition = null;
 
-                    // Store user coords for alternative routes
-                    const coords = {
-                        lat: result.userPosition.latitude,
-                        lng: result.userPosition.longitude,
-                    };
-                    setUserCoords(coords);
-
-                    // Set alternative routes directly from result
-                    if (result.alternatives && result.alternatives.length > 0) {
-                        setAlternativesDirectly(result.alternatives);
-                        // Also pass to parent component to show RouteSelector on map
-                        if (setParentAlternatives) {
-                            setParentAlternatives(result.alternatives);
-                        }
-                        console.log('Alternatives set:', result.alternatives);
-                    }
-
-                    // Update URL without 'active' parameter to prevent re-opening
-                    const searchParams = new URLSearchParams(
-                        window.location.search,
+            if (manualLocation) {
+                userPosition = {
+                    latitude: manualLocation.latitude,
+                    longitude: manualLocation.longitude,
+                };
+            } else if (position && position.latitude && position.longitude) {
+                userPosition = {
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                };
+            } else {
+                try {
+                    userPosition = await getCurrentPosition();
+                } catch (err) {
+                    throw new Error(
+                        'Tidak dapat mengakses lokasi Anda. Pastikan izin lokasi telah diberikan.',
                     );
-                    searchParams.delete('active'); // Remove active to prevent re-open
-                    searchParams.set(
-                        'to',
-                        `${shop.latitude},${shop.longitude}`,
-                    );
+                }
+            }
 
-                    // Add start location to URL if set
-                    if (startLocation) {
-                        searchParams.set(
-                            'from',
-                            `${startLocation.lat},${startLocation.lng}`,
-                        );
-                    }
+            if (
+                !userPosition ||
+                !userPosition.latitude ||
+                !userPosition.longitude
+            ) {
+                throw new Error('Lokasi tidak valid');
+            }
 
-                    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-                    window.history.replaceState({}, '', newUrl);
+            // Fetch route from OSRM directly
+            const coordinates = `${userPosition.longitude},${userPosition.latitude};${shop.longitude},${shop.latitude}`;
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordinates}`;
 
-                    // Close the drawer/sheet after URL is updated
-                    if (onOpenChange) {
-                        setTimeout(() => {
-                            onOpenChange(false);
-                        }, 100);
-                    }
+            const response = await axios.get(osrmUrl, {
+                params: {
+                    overview: 'full',
+                    geometries: 'geojson',
+                    alternatives: 'true',
+                    steps: 'true',
                 },
             });
+
+            if (
+                response.data.code !== 'Ok' ||
+                !response.data.routes ||
+                response.data.routes.length === 0
+            ) {
+                throw new Error('Tidak dapat menemukan rute');
+            }
+
+            // Process routes
+            const routes = response.data.routes.map((route, index) => {
+                const distanceKm = (route.distance / 1000).toFixed(2);
+                const durationMin = (route.duration / 60).toFixed(1);
+
+                return {
+                    id: index + 1,
+                    rank: index + 1,
+                    data: {
+                        type: 'Feature',
+                        geometry: route.geometry,
+                        properties: {
+                            distance: parseFloat(distanceKm),
+                            duration: parseFloat(durationMin),
+                            summary: `Rute ${index + 1}`,
+                            source: 'osrm',
+                        },
+                        startCoords: {
+                            lat: userPosition.latitude,
+                            lng: userPosition.longitude,
+                        },
+                        endCoords: {
+                            lat: parseFloat(shop.latitude),
+                            lng: parseFloat(shop.longitude),
+                        },
+                    },
+                    distance: parseFloat(distanceKm),
+                    duration: parseFloat(durationMin),
+                };
+            });
+
+            // Set main route (first one)
+            const mainRoute = routes[0];
+            setRouteInfo({
+                distance: mainRoute.distance,
+                duration: mainRoute.duration,
+            });
+
+            setUserCoords({
+                lat: userPosition.latitude,
+                lng: userPosition.longitude,
+            });
+
+            // Show route on map
+            if (onShowRoute && typeof onShowRoute === 'function') {
+                onShowRoute({
+                    route: mainRoute.data,
+                    shop: shop,
+                    userPosition: userPosition,
+                });
+            }
+
+            // Set alternative routes
+            if (routes.length > 0) {
+                setAlternativeRoutes(routes);
+                if (setParentAlternatives) {
+                    setParentAlternatives(routes);
+                }
+            }
+
+            toast.success('Rute berhasil ditemukan!', {
+                id: 'route-calculation',
+                description: `${mainRoute.distance} km, ${mainRoute.duration} menit`,
+            });
+
+            // Update URL
+            const searchParams = new URLSearchParams(window.location.search);
+            searchParams.delete('active');
+            searchParams.set('to', `${shop.latitude},${shop.longitude}`);
+
+            if (manualLocation) {
+                searchParams.set(
+                    'from',
+                    `${manualLocation.latitude},${manualLocation.longitude}`,
+                );
+            }
+
+            const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+
+            // Close drawer/sheet
+            if (onOpenChange) {
+                setTimeout(() => {
+                    onOpenChange(false);
+                }, 100);
+            }
         } catch (err) {
-            // Error already handled by calculateRoute
-            console.error('Route calculation failed:', err);
+            console.error('Error calculating route:', err);
+            toast.error('Gagal menghitung rute', {
+                id: 'route-calculation',
+                description: err.message || 'Silakan coba lagi nanti.',
+                duration: 4000,
+            });
+        } finally {
+            setIsCalculating(false);
         }
     };
 
     const handleSelectAlternativeRoute = (route) => {
         if (!userCoords) return;
 
-        selectRoute(
-            route,
-            userCoords.lat,
-            userCoords.lng,
-            parseFloat(shop.latitude),
-            parseFloat(shop.longitude),
-        );
-
         // Update route info
         setRouteInfo({
-            distance: route.data.properties.distance,
-            duration: route.data.properties.duration,
-            userPosition: userCoords,
+            distance: route.distance,
+            duration: route.duration,
+        });
+
+        // Show selected route on map
+        if (onShowRoute && typeof onShowRoute === 'function') {
+            onShowRoute({
+                route: route.data,
+                shop: shop,
+                userPosition: {
+                    latitude: userCoords.lat,
+                    longitude: userCoords.lng,
+                },
+            });
+        }
+
+        toast.success('Rute dipilih', {
+            description: `${route.distance} km, ${route.duration} menit`,
+            duration: 2000,
         });
     };
 
     const handleHideRoute = () => {
         setRouteInfo(null);
         setUserCoords(null);
-        clearAlternativeRoutes();
+        setAlternativeRoutes([]);
+        if (setParentAlternatives) {
+            setParentAlternatives([]);
+        }
         // Bersihkan rute dari peta juga jika ada callback untuk itu
         if (onShowRoute && typeof onShowRoute === 'function') {
             onShowRoute(null);

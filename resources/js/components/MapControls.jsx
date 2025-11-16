@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
+import L from 'leaflet';
 import { Locate, MapPin, Minus, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMap } from 'react-leaflet';
 
 /**
@@ -12,7 +13,16 @@ export default function MapControls({
     onToggleLocationPicker,
 }) {
     const map = useMap();
+    const containerRef = useRef(null);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Disable map click events on this control container
+    useEffect(() => {
+        if (containerRef.current) {
+            L.DomEvent.disableClickPropagation(containerRef.current);
+            L.DomEvent.disableScrollPropagation(containerRef.current);
+        }
+    }, []);
 
     const handleZoomIn = () => {
         map.setZoom(map.getZoom() + 1);
@@ -35,7 +45,10 @@ export default function MapControls({
     };
 
     return (
-        <div className="absolute right-4 bottom-4 z-[1000] flex flex-col gap-2">
+        <div
+            ref={containerRef}
+            className="absolute right-4 bottom-4 z-[1000] flex flex-col gap-2"
+        >
             {/* Toggle Button */}
 
             {/* Expanded Controls */}

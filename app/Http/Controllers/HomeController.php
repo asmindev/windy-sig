@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Shop;
 use App\Services\RouteService;
 use Illuminate\Http\Request;
@@ -21,9 +22,10 @@ class HomeController extends Controller
         $activeShopId = $request->get('active');
         $fromCoords = $request->get('from'); // format: "lat,lng"
         $toCoords = $request->get('to'); // format: "lat,lng"
+        $categoryIds = $request->get('categories') ? explode(',', $request->get('categories')) : [];
 
         $shops = Shop::query()
-            ->with('products')
+            ->with('products.category')
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     // Cari berdasarkan nama toko, alamat, atau deskripsi
@@ -40,6 +42,11 @@ class HomeController extends Controller
                                     $categoryQuery->where('name', 'like', "%{$search}%");
                                 });
                         });
+                });
+            })
+            ->when(count($categoryIds) > 0, function ($query) use ($categoryIds) {
+                return $query->whereHas('products', function ($productQuery) use ($categoryIds) {
+                    $productQuery->whereIn('category_id', $categoryIds);
                 });
             })
             ->get();
@@ -85,6 +92,7 @@ class HomeController extends Controller
             'search' => $search,
             'activeShop' => $activeShop,
             'routingData' => $routingData,
+            'categories' => Category::withCount('products')->orderBy('name')->get(),
         ]);
     }
 }
